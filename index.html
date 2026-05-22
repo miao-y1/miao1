@@ -521,8 +521,37 @@ body {
     </div>
 </div>
 
-    <div id="app" class="relative w-full h-full flex overflow-hidden z-10" :style="globalBgStyle">
+<script>
+(function () {
+    function removeBootLoader() {
+        var loader = document.getElementById('slowchatBootLoader');
+        if (!loader) return;
 
+        loader.classList.add('slowchat-boot-hide');
+
+        setTimeout(function () {
+            var again = document.getElementById('slowchatBootLoader');
+            if (again && again.parentNode) {
+                again.parentNode.removeChild(again);
+            }
+        }, 300);
+    }
+
+    window.removeBootLoader = removeBootLoader;
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(removeBootLoader, 900);
+        });
+    } else {
+        setTimeout(removeBootLoader, 900);
+    }
+
+    setTimeout(removeBootLoader, 3000);
+})();
+</script>
+
+    <div id="app" class="relative w-full h-full flex overflow-hidden z-10" :style="globalBgStyle">
         <!-- 全景壁纸与轻量滤镜 -->
         <div class="absolute inset-0 bg-cover bg-center z-0 transition-opacity duration-300" :style="wallpaperStyle"></div>
         <div class="absolute inset-0 z-0 pointer-events-none transition-opacity duration-300"
@@ -1141,19 +1170,23 @@ body {
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-brand-beige/20 p-3.5 rounded-xl border border-brand-softGray/60">
                                     <div>
                                         <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1">生图接口地址 (默认 OpenAI Base URL)</label>
-                                        <input type="text"
-       v-model="settings.apiUrl"
+                                        
+<input type="text"
+       v-model="imageSettings.apiUrl"
        :disabled="!appReady"
        :placeholder="appReady ? 'https://api.openai.com/v1' : '正在载入配置...'"
        class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold disabled:opacity-60">
+
                                     </div>
                                     <div>
                                         <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1">专属生图 Key (API Token)</label>
-                                        <input type="password"
-       v-model="settings.apiKey"
+                                        
+<input type="password"
+       v-model="imageSettings.apiKey"
        :disabled="!appReady"
-       :placeholder="appReady ? '输入 API Key' : '正在载入配置...'"
+       :placeholder="appReady ? '输入生图专用认证密钥' : '正在载入配置...'"
        class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold disabled:opacity-60">
+
                                     </div>
                                 </div>
 
@@ -1238,8 +1271,8 @@ body {
                                 </div>
 
                                 <div v-show="!collapsedPanels.imagePreview" class="p-4 sm:p-5 flex flex-col items-center justify-center text-center min-h-[240px] sm:min-h-[300px]">
-                                    <template v-if="generatedImage">
-    <template v-if="generatedImage">
+                                    
+             <template v-if="generatedImage">
     <div class="w-full border border-brand-softGray rounded-xl overflow-hidden shadow-soft mb-4 max-h-[350px] image-preview-frame">
         <div v-if="imagePreviewLoading"
              class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-brand-warmWhite/85">
@@ -1274,6 +1307,7 @@ body {
         </a>
     </div>
 </template>
+
                                     <template v-else-if="isGeneratingImage">
                                         <div class="space-y-4">
                                             <div class="w-16 h-16 border-4 border-brand-gold border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -2167,15 +2201,16 @@ body {
 
         marked.use({ breaks: true, tokenizer: { code(src) { return undefined; } } });
 
-        createApp({
-            setup() {
-                const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0M1QTg4MCIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDAiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjMzZW0iPk08L3RleHQ+PC9zdmc+';
+                 const app = createApp({
+            setup() {               
+const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0M1QTg4MCIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDAiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjMzZW0iPk08L3RleHQ+PC9zdmc+';
 
-const appReady = ref(false);
+const appReady = ref(true);
 
 const currentView = ref('lobby');
 const showMobileMenu = ref(false);
 const sidebarCollapsed = ref(false);
+const isMobileCompact = ref(false);
 
 const updateMobileState = () => {
     isMobileCompact.value = window.innerWidth < 768;
@@ -3805,7 +3840,7 @@ const mergeReactive = (target, source) => {
 };
 
 const loadData = () => {
-    appReady.value = false;
+    appReady.value = true;
 
     try {
         const savedChars = safeJsonParse(localStorage.getItem('miao_chars'), []);
@@ -4097,19 +4132,22 @@ onDreamImageError,
                     togglePanel
                 };
             }
-         }).mount('#app');
+                  });
+
+        try {
+            app.mount('#app');
+        } catch (e) {
+            console.error('Vue 挂载失败：', e);
+            if (window.removeBootLoader) {
+                window.removeBootLoader();
+            }
+        }
 
         setTimeout(() => {
-            const loader = document.getElementById('slowchatBootLoader');
-            if (loader) {
-                loader.classList.add('slowchat-boot-hide');
-                setTimeout(() => {
-                    if (loader && loader.parentNode) {
-                        loader.parentNode.removeChild(loader);
-                    }
-                }, 260);
+            if (window.removeBootLoader) {
+                window.removeBootLoader();
             }
-        }, 3000);
-    </script>
+        }, 3000);   
+ </script>
 </body>
 </html>
