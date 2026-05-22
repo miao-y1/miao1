@@ -778,20 +778,15 @@ body {
 
                 <template v-else-if="currentView === 'image_gen'">
                     <div class="text-[9px] font-black tracking-widest text-brand-gray mb-2">梦境画师快速推荐</div>
-                    <div class="p-3 bg-brand-beige/40 rounded-xl space-y-2 text-[10px] font-semibold text-brand-gray/90 leading-relaxed max-h-[35vh] overflow-y-auto">
-                        <div @click="applyArtistPreset(1)" class="cursor-pointer hover:text-brand-gold transition border-b border-brand-softGray/50 pb-2">
-                            <div class="font-bold text-brand-ink">预设 1: 2024 年度插画师派系</div>
-                            <div v-pre class="text-[8px] text-brand-gray truncate mt-1">[[[artist:dishwasher1910]]], {{yd_(orange_maru)}}...</div>
-                        </div>
-                        <div @click="applyArtistPreset(2)" class="cursor-pointer hover:text-brand-gold transition border-b border-brand-softGray/50 py-2">
-                            <div class="font-bold text-brand-ink">预设 2: 4K 极致写真特写风格</div>
-                            <div class="text-[8px] text-brand-gray truncate mt-1">0.9::misaka_12003-gou ::, dino_(dinoartforame)...</div>
-                        </div>
-                        <div @click="applyArtistPreset(3)" class="cursor-pointer hover:text-brand-gold transition pt-2">
-                            <div class="font-bold text-brand-ink">预设 3: 厚涂艺术光影动漫</div>
-                            <div class="text-[8px] text-brand-gray truncate mt-1">(extremely detailed illustration:1.2)...</div>
-                        </div>
-                    </div>
+<div class="p-3 bg-brand-beige/40 rounded-xl space-y-2 text-[10px] font-semibold text-brand-gray/90 leading-relaxed max-h-[42vh] overflow-y-auto">
+    <div v-for="preset in miaoArtistPresets"
+         :key="preset.id"
+         @click="applyArtistPreset(preset.id)"
+         class="cursor-pointer hover:text-brand-gold transition border-b border-brand-softGray/50 pb-2 last:border-b-0 last:pb-0">
+        <div class="font-bold text-brand-ink">{{ preset.name }}</div>
+        <div class="text-[8px] text-brand-gray truncate mt-1">{{ preset.artist }}</div>
+    </div>
+</div>
                 </template>
 
                 <template v-else-if="currentView === 'settings'">
@@ -1097,7 +1092,7 @@ body {
                                                  :class="msg.role === 'user'
                                                     ? 'bg-brand-ink text-[#F7F5F0] rounded-2xl rounded-tr-none'
                                                     : 'bg-white/90 border border-brand-softGray rounded-2xl rounded-tl-none text-brand-ink/90'"
-                                                 v-html="renderCustomMarkdown(getDisplayContent(msg), msg.role)">
+                                                 v-html="renderCustomMarkdown(getDisplayContent(msg), msg.role, msg)">
                                             </div>
 
                                             <div v-if="msg.role === 'assistant' && msg.swipes && msg.swipes.length > 1" class="flex items-center justify-start gap-2 mt-2 px-1">
@@ -1323,12 +1318,12 @@ body {
             下载图片
         </button>
 
-        <a :href="generatedImage"
-           target="_blank"
-           rel="noreferrer"
-           class="px-5 py-2.5 bg-white border border-brand-softGray text-brand-ink rounded-xl text-xs font-bold shadow-soft hover:bg-brand-softGray transition flex items-center gap-2">
-            新窗口打开
-        </a>
+        <div class="flex flex-wrap gap-2 justify-center">
+    <button @click="downloadDreamImage"
+            class="px-5 py-2.5 bg-brand-gold text-brand-ink rounded-xl text-xs font-bold shadow-soft hover:bg-brand-goldHover hover:text-white transition flex items-center gap-2">
+        下载图片
+    </button>
+</div>
     </div>
 </template>
 
@@ -3397,7 +3392,7 @@ const applyRegexScripts = (text, roleNumber, mode = 'display', depth = 0) => {
 
     return output;
 };
-                const renderCustomMarkdown = (text, role) => {
+                const renderCustomMarkdown = (text, role, msg = null) => {
                     if (!text) return '';
                     let processed = text;
 
@@ -3405,6 +3400,19 @@ const applyRegexScripts = (text, roleNumber, mode = 'display', depth = 0) => {
                     let parsedText = parseCot(processed).main;
 
                     parsedText = parsedText.replace(/<miao-image(?:\s+[^>]*)?>[\s\S]*?<\/miao-image>/gi, '<div class="miao-image-loading">插图生成队列已接收...</div>');
+
+if (msg && msg.miaoGeneratedImages && typeof msg.miaoGeneratedImages === 'object') {
+    parsedText = parsedText.replace(
+        /<miao-image-render\s+data-miao-image-id="([^"]+)"\s*><\/miao-image-render>/gi,
+        (full, imageId) => {
+            const src = msg.miaoGeneratedImages[imageId];
+            if (!src) {
+                return '<div class="miao-image-loading">插图资源不存在</div>';
+            }
+            return `<img src="${src}" alt="AI生成插图" referrerpolicy="no-referrer">`;
+        }
+    );
+}
 
                     if (role === 'assistant' && currentCharacter.value && currentCharacter.value.statusVars) {
                         const matches = [...parsedText.matchAll(/\[([a-zA-Z_]+)([+-]\d+)\]/g)];
@@ -3516,23 +3524,73 @@ const charPostPromptForAI = applyRegexScripts(
 );
 
 const replyImageProtocol = settings.enableReplyImage ? `
-【插图生成协议】
-当当前回复中存在明确视觉价值的场景、人物姿态、服装、环境或关键画面时，可以在正文自然段落之后追加一段插图提示词。
-格式必须严格如下：
+【自动插图协议】
+用户已启用自动插图。你在回复时需要根据当前剧情、环境、人物动作与画面重点，自主判断是否生成插图提示词。
+插图提示词必须使用以下唯一格式输出：
+
 <miao-image>
-英文生图提示词，包含角色外貌、服装、动作、场景、光线、镜头、姿势、面部表情、画风，不要写解释。
-特别提示：出现user或主角参与的情况(如被口、手交），禁止出现主角的人物形象(脸部，头部）！必须使用第一视角(POV）相关提示词！且要作为Character  Prompt添加，禁止出现角色卡和角色名字(包括英文和拼音），中文和{{user}}是明令禁止的，且一定要保持同一人物在上下文中的形象一致性，不要丢失人物特性(如有异色瞳特征人物），涉及人物常见特征(如发色，瞳孔颜色等）的提示词请增加权重
+英文提示词
 </miao-image>
-限制：
-注意:始终使用逗号分隔条目.另外请保证同一角色的特征，如发色，瞳孔颜色，体态，外貌的一致性.
-注意：如为nsfw场景，生成的提示词的最开头必须带上 nsfw 标签！
-注意：必须精准提取并保留角色当前的外貌，着装状态（如衣服是否破损、脱下）、环境光影、道具位置以及相对姿势。一旦在上文改变了状态，后续生图必须绝对保持一致！
-注意：同人角色/固定外观一致性：对于特定世界观或同人角色，必须带上极其准确的专属特征组合。对常驻特征（如特定发型、异色瞳、专属装饰物等）加上最高权重 {{{Tag}}}，避免生成外形崩坏和不一致。
-- 每次回复至少插1张图。
-- 每次回复最多输出三个 miao-image 块。
-- miao-image 内只写英文提示词。
-- 不要把剧情正文写进 miao-image。
-- 如果当前回复没有明确画面价值，不要输出 miao-image。
+
+【输出规则】
+- 每次回复最多输出 3 个 <miao-image> 块。
+- 如果当前回复存在明确画面价值，例如角色动作、姿态、服装变化、环境变化、情绪高潮、亲密互动、冲突瞬间、镜头感强的场景，应优先生成插图。
+- 如果这一轮没有足够明确的视觉焦点，至少输出1个 <miao-image>。
+- <miao-image> 按需插入。
+- <miao-image> 内只能写英文提示词，禁止解释，禁止中文，禁止剧情说明，禁止心理描写。
+
+【提示词构成顺序】
+提示词应优先按以下视觉层级组织，使用逗号分隔：
+1. 人物主体与数量：如 1girl, 1boy, 2girls
+2. 外貌核心特征：发色、瞳色、发型、体型、年龄感、种族感、角色恒定特征
+3. 风格/身份特征：如 ojousama, gyaru, maid, office lady, knight, shrine maiden
+4. 表情与状态：如 smile, crying, angry, embarrassed, aroused, tired
+5. 动作与姿势：如 standing, kneeling, lying, sitting, walking, leaning, bent over
+6. 身体与手部细节：如 hand on chest, hands on lap, skirt lift, arms behind back
+7. 服装与衣物状态：如 school uniform, blouse, open shirt, panties, no bra, torn clothes
+8. 场景与道具：如 classroom, bedroom, bathroom, street, rain, window, sofa
+9. 镜头与构图：如 cowboy shot, upper body, close-up, full body, from above, from below, pov
+10. 时间与光线：如 morning, sunset, night, warm light, neon lighting, cinematic lighting
+
+【一致性要求】
+- 必须保持同一角色在上下文中的外貌一致性，尤其是发色、瞳色、体型、服饰状态、特殊特征。
+- 如果上一轮已出现衣物破损、湿透、半脱、染污、凌乱等状态，后续提示词必须延续，不得重置。
+- 如果场景未切换，环境、时间段、光源应保持连续。
+- 若构图只展示局部，可以省略看不见的部位信息，但不能与既有设定冲突。
+
+【NSFW规则】
+- 如果当前场景属于明确的 NSFW 画面，<miao-image> 的提示词开头必须加入 nsfw,
+- 若只是暧昧、轻微亲密、非露骨接触，不强制加入 nsfw。
+- NSFW 提示词依然只能描述客观可见的内容，不得写主观感受、羞耻心理、欲望解释。
+
+【主角参与规则】
+- 若画面涉及用户/主角参与的亲密或身体互动，不要生成主角完整外貌，不要写主角名字，不要写 {{user}}。
+- 这类画面应优先使用 pov, first-person perspective, from viewer, viewer's hand 等第一视角标签。
+- 禁止出现“角色卡名字”“英文角色名”“中文名”“拼音名”作为 tag。
+- 当主角参与口交、手交、抚摸、按压、压制等近距离互动时，默认以 POV 构图处理，避免出现主角脸部与头部。
+
+【禁止内容】
+- 禁止中文 tag
+- 禁止解释句
+- 禁止抽象情绪判断，如 broken heart, inner pain, loneliness symbolism
+- 禁止回忆、计划、预告、比喻
+- 禁止把对白内容直接写进 tag
+- 禁止输出网址、链接、按钮文案
+- 禁止输出角色真实姓名、拼音名、角色卡内部代号
+
+【生成原则】
+- 只描述画面中客观存在的人、物、背景、光线、服装与正在发生的物理动作。
+- 优先突出当前画面的视觉焦点，不要平均堆砌全部信息。
+- 涉及发色、瞳色、特殊身体特征等关键识别项时，适度增加权重，例如 {{{black hair}}}, {{{blue eyes}}}
+- 若某些元素在当前构图中不可见，应减少或移除对应 tag，避免信息冲突。
+- 提示词要适配当前生图模型与画师串风格。
+
+【当前生图配置摘要】
+生图模型：${imageSettings.model || '未设置'}
+画师串：${imageSettings.artist || '无'}
+尺寸：${imageSettings.size || '竖图'}
+采样器：${imageSettings.sampler || 'k_dpmpp_2m_sde'}
+负面提示词由前端统一附加，你无需在 <miao-image> 中重复编写长负面词。
 ` : '';
 
 let sysPrompt = `${wiPack.systemTop ? wiPack.systemTop + '\n\n' : ''}${charSystemPromptForAI ? '【角色系统提示】\n' + charSystemPromptForAI + '\n\n' : ''}${wiPack.beforeChar ? wiPack.beforeChar + '\n\n' : ''}你现在扮演：${currentCharacter.value.name}
@@ -3915,15 +3973,20 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                 };
 
                 const copyMessage = (txt) => {
-                    const el = document.createElement('textarea');
-                    el.value = txt;
-                    document.body.appendChild(el);
-                    el.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(el);
-                    showToast('已复制。');
-                };
+    const el = document.createElement('textarea');
 
+    let cleanText = String(txt || '')
+        .replace(/<miao-image-render\s+data-miao-image-id="([^"]+)"\s*><\/miao-image-render>/gi, '[插图]')
+        .replace(/<miao-image(?:\s+[^>]*)?>[\s\S]*?<\/miao-image>/gi, '[插图提示词]')
+        .replace(/<[^>]+>/g, '');
+
+    el.value = cleanText;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('已复制。');
+};
                 const editMessage = (idx) => {
                     chatHistory.value[idx].isEditing_Message = true;
                     chatHistory.value[idx].editMessageContent = getDisplayContent(chatHistory.value[idx]);
@@ -4092,11 +4155,18 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                         return;
                     }
 
-                    const dataStr = JSON.stringify({
-                        characterUuid: currentCharacter.value.uuid,
-                        characterName: currentCharacter.value.name,
-                        history: chatHistory.value
-                    }, null, 2);
+                    const safeHistory = JSON.parse(JSON.stringify(chatHistory.value)).map(msg => {
+    if (msg && msg.miaoGeneratedImages) {
+        msg.miaoGeneratedImages = {};
+    }
+    return msg;
+});
+
+const dataStr = JSON.stringify({
+    characterUuid: currentCharacter.value.uuid,
+    characterName: currentCharacter.value.name,
+    history: safeHistory
+}, null, 2);
 
                     const blob = new Blob([dataStr], { type: 'application/json' });
                     const link = document.createElement('a');
@@ -4155,18 +4225,65 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                     showToast('聊天背景已清除。');
                 };
 
-                const applyArtistPreset = (num) => {
-                    if (num === 1) {
-                        imageSettings.artist = "[[[artist:dishwasher1910]]], {{yd_(orange_maru)}}, [artist:ciloranko], [artist:sho_(sho_lwlw)], [ningen mame], year 2024.";
-                    } else if (num === 2) {
-                        imageSettings.artist = "realistic, photorealistic, best quality, absurdres, detailed skin texture, cinematic lighting";
-                    } else if (num === 3) {
-                        imageSettings.artist = "(masterpiece:1.3), (best quality:1.2), highres, anime style, detailed eyes, vivid colors";
-                    }
+                const miaoArtistPresets = [
+    {
+        id: 1,
+        name: '2.5次元',
+        artist: `artist:void_0,, lownine,, mocha,, epic background, realistic lighting,, location,
+20::best quality, absurdres, very aesthetic, detailed, masterpiece::,:,, very aesthetic, masterpiece, no text, 2.5d, anime face, realistic body`
+    },
+    {
+        id: 2,
+        name: '漫画风格',
+        artist: `masterpiece:1.3, best quality:1.2, highres, absurdres,
+extremely detailed illustration:1.2, anime style:1.1, artist:nlebo-hentai:0.9, artist:hews:0.4, artist:sos adult:0.85`
+    },
+    {
+        id: 3,
+        name: 'Galgame风格1',
+        artist: `artist:azuuru,, torino aqua,, fuzichoco,, visual novel, vibrant, soft lighting,, location,
+20::best quality, absurdres, very aesthetic, detailed, masterpiece::,:,, very aesthetic, masterpiece, no text`
+    },
+    {
+        id: 4,
+        name: 'Galgame风格2',
+        artist: `artist:ciloranko,, [artist:tianliang duohe fangdongye],, [artist:sho_(sho_lwlw)],, [artist:baku-p],, [artist:tsubasa_tsubasa],, visual novel, cg art,, location,
+20::best quality, absurdres, very aesthetic, detailed, masterpiece::,:,, very aesthetic, masterpiece, no text`
+    },
+    {
+        id: 5,
+        name: 'Galgame风格3',
+        artist: `artist:ask (askzy),, sho (sho_lwlw),, anmi,, galgame aesthetic, soft shading, bishoujo,, location,
+20::best quality, absurdres, very aesthetic, detailed, masterpiece::,:,, very aesthetic, masterpiece, no text`
+    },
+    {
+        id: 6,
+        name: '肉感',
+        artist: `0.9::padori ::, tattail,, yang ji (yangjiiiiii),, liduke,, year 2025, realistic, 4k, -2::green ::, textless version, The image is highly intricate finished drawn. Only the character's face is in anime style, but their body is in realistic style. 1.35::A highly finished photo-style artwork that has lively color, graphic texture, realistic skin surface, and plump feminine figure with healthy curves::. 1.63::photorealistic::, 1.63::photo(medium)::,
+20::best quality, absurdres, very aesthetic, detailed, masterpiece::,:,, very aesthetic, masterpiece, no text,`
+    },
+    {
+        id: 7,
+        name: '韩漫',
+        artist: `0.9::r_booo ::, darkmaya,, napata,, seo young (drstartree),, year 2025, realistic, 4k, -2::green ::, textless version, The image is highly intricate finished drawn. Only the character's face is in anime style, but their body is in realistic style. 1.35::A highly finished photo-style artwork that has lively color, graphic texture, realistic skin surface, and plump feminine figure with healthy curves::. 1.63::photorealistic::, 1.63::photo(medium)::,
+20::best quality, absurdres, very aesthetic, detailed, masterpiece::,:,, very aesthetic, masterpiece, no text,`
+    },
+    {
+        id: 8,
+        name: '情绪风',
+        artist: `artist:funabashi_hana (iwzry),, deadflow,, furakawa,, vintage, retro aesthetic,, location,
+20::best quality, absurdres, very aesthetic, detailed, masterpiece::,:,, very aesthetic, masterpiece, no text`
+    }
+];
 
-                    saveData();
-                    showToast(`已应用画师预设 ${num}。`);
-                };
+const applyArtistPreset = (num) => {
+    const preset = miaoArtistPresets.find(p => p.id === num);
+    if (!preset) return;
+
+    imageSettings.artist = preset.artist;
+    saveData();
+    showToast(`已应用画师预设：${preset.name}`);
+};
 
                    const extractImageFromResponse = (raw) => {
     if (!raw) return '';
@@ -4239,13 +4356,44 @@ const buildMiaoImagePayload = (promptText) => {
 采样器:${imageSettings.sampler || 'k_dpmpp_2m_sde'}`;
 };
 
+const sanitizeMiaoImagePrompt = (promptText) => {
+    let cleaned = String(promptText || '');
+
+    const bannedWords = [
+        '{{user}}',
+        'user',
+        'User',
+        '主角'
+    ];
+
+    const charName = currentCharacter.value?.name ? String(currentCharacter.value.name).trim() : '';
+    const personaName = activePersona.value?.name ? String(activePersona.value.name).trim() : '';
+
+    if (charName) bannedWords.push(charName);
+    if (personaName) bannedWords.push(personaName);
+
+    bannedWords.forEach(word => {
+        if (!word) return;
+        const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        cleaned = cleaned.replace(new RegExp(escaped, 'gi'), '');
+    });
+
+    cleaned = cleaned.replace(/[，、；。]/g, ',');
+    cleaned = cleaned.replace(/\s+/g, ' ');
+    cleaned = cleaned.replace(/,+/g, ',');
+    cleaned = cleaned.replace(/\s*,\s*/g, ', ');
+    cleaned = cleaned.replace(/^,\s*|,\s*$/g, '');
+
+    return cleaned.trim();
+};
+
 const requestMiaoImageFromPrompt = async (promptText) => {
     if (!imageSettings.apiKey) {
         throw new Error('未配置生图 API Key');
     }
 
-    const payload = buildMiaoImagePayload(promptText);
-
+    const safePromptText = sanitizeMiaoImagePrompt(promptText);
+const payload = buildMiaoImagePayload(safePromptText);
     const res = await fetch(`${imageSettings.apiUrl.replace(/\/$/, '')}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -4337,11 +4485,17 @@ const processAssistantImageBlocks = async (msg) => {
 
             const imageUrl = await requestMiaoImageFromPrompt(promptText);
 
-            const imageMarkdown = `![AI生成插图](${imageUrl})`;
+            if (!msg.miaoGeneratedImages || typeof msg.miaoGeneratedImages !== 'object') {
+    msg.miaoGeneratedImages = {};
+}
 
-            content = getDisplayContent(msg).replace(loadingBlock, imageMarkdown);
-            setAssistantMessageDisplayContent(msg, content);
+const imageId = `miao_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+msg.miaoGeneratedImages[imageId] = imageUrl;
 
+const imagePlaceholder = `<miao-image-render data-miao-image-id="${imageId}"></miao-image-render>`;
+
+content = getDisplayContent(msg).replace(loadingBlock, imagePlaceholder);
+setAssistantMessageDisplayContent(msg, content);
             showToast('插图已生成并插入回复。', 'success');
         } catch (e) {
             const failBlock = `<div class="miao-image-loading">插图生成失败：${String(e.message || e).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
@@ -4809,17 +4963,17 @@ onBeforeUnmount(() => {
                     resetCustomChatBg,
                     chatRoomBgStyle,
 
-                    imageSettings,
-isGeneratingImage,
-generatedImage,
-imagePreviewLoading,
-imagePreviewError,
-generateDreamImage,
-downloadDreamImage,
-applyArtistPreset,
-onDreamImageLoad,
-onDreamImageError,
-
+                   imageSettings,
+                   isGeneratingImage,
+                   generatedImage,
+                   imagePreviewLoading,
+                   imagePreviewError,
+                   generateDreamImage,
+                   downloadDreamImage,
+                   miaoArtistPresets,
+                   applyArtistPreset,
+                   onDreamImageLoad,
+                   onDreamImageError,
                     collapsedPanels,
                     togglePanel
                 };
