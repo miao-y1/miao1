@@ -1663,7 +1663,20 @@ body {
                                     <span class="text-[9px] bg-brand-gold text-brand-ink font-bold px-2 py-0.5 rounded-full">{{ editingCharacter.data.regexScripts.length }} 条</span>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button @click="editingCharacter.data.regexScripts.unshift({scriptName:'新脚本', findRegex:'', replaceString:'', placement:[2], markdownOnly:false, promptOnly:false, runOnEdit:true, substituteRegex:false, minDepth:null, maxDepth:null, disabled:false})" class="px-4 py-1.5 bg-brand-ink text-white text-xs font-bold rounded-lg">+ 新增</button>
+                                    <button @click="editingCharacter.data.regexScripts.unshift({
+    scriptName:'新脚本',
+    findRegex:'',
+    replaceString:'',
+    placement:[2],
+    markdownOnly:false,
+    promptOnly:false,
+    runOnEdit:true,
+    substituteRegex:false,
+    trimStrings:[],
+    minDepth:null,
+    maxDepth:null,
+    disabled:false
+})" class="px-4 py-1.5 bg-brand-ink text-white text-xs font-bold rounded-lg">+ 新增</button>
                                     <button @click="saveCharacter" class="px-4 py-1.5 bg-brand-gold text-brand-ink text-xs font-black rounded-lg">保存</button>
                                 </div>
                             </div>
@@ -1691,6 +1704,22 @@ body {
                                         <label class="text-[8px] font-black tracking-widest text-brand-gray uppercase block mb-1">替换模板</label>
                                         <textarea v-model="rx.replaceString" placeholder="<span style='color:#C5A880'>『$1』</span>" class="w-full bg-white border border-brand-softGray rounded-xl p-3 text-xs font-mono min-h-[70px] outline-none resize-y focus:border-brand-gold text-blue-700"></textarea>
                                     </div>
+                                    <div class="grid grid-cols-2 gap-3 mb-3">
+    <div>
+        <label class="text-[8px] font-black tracking-widest text-brand-gray uppercase block mb-1">最小深度</label>
+        <input type="number"
+               v-model.number="rx.minDepth"
+               placeholder="可空"
+               class="w-full bg-white border border-brand-softGray rounded-lg py-1.5 px-3 text-xs outline-none font-mono focus:border-brand-gold">
+    </div>
+    <div>
+        <label class="text-[8px] font-black tracking-widest text-brand-gray uppercase block mb-1">最大深度</label>
+        <input type="number"
+               v-model.number="rx.maxDepth"
+               placeholder="可空"
+               class="w-full bg-white border border-brand-softGray rounded-lg py-1.5 px-3 text-xs outline-none font-mono focus:border-brand-gold">
+    </div>
+</div>
 
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px] font-semibold text-brand-gray pt-2 border-t border-brand-softGray/50">
                                         <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" :checked="rx.placement && rx.placement.includes(1)" @change="e => e.target.checked ? rx.placement.push(1) : rx.placement = rx.placement.filter(p=>p!==1)" class="w-3.5 h-3.5 accent-brand-gold"> User</label>
@@ -1704,6 +1733,14 @@ body {
 </label>
                                         <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="rx.markdownOnly" class="w-3.5 h-3.5 accent-brand-gold"> Markdown</label>
                                         <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="rx.promptOnly" class="w-3.5 h-3.5 accent-brand-gold"> Prompt</label>
+                                        <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink">
+    <input type="checkbox" v-model="rx.substituteRegex" class="w-3.5 h-3.5 accent-brand-gold">
+    替代正则
+</label>
+<label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink">
+    <input type="checkbox" v-model="rx.runOnEdit" class="w-3.5 h-3.5 accent-brand-gold">
+    编辑运行
+</label>
                                     </div>
                                 </div>
                             </div>
@@ -2254,16 +2291,24 @@ const normWI = (e) => {
        const normRX = (s) => {
     if (!s) return {};
 
-    let rawFind = s.findRegex ?? s.find_regex ?? s.regex ?? '';
-    const flags = s.flags ?? s.regexFlags;
+    let rawFind = s.findRegex ?? s.find_regex ?? s.regex ?? s.pattern ?? '';
+    const flags = s.flags ?? s.regexFlags ?? s.regex_flags;
 
-    if (flags && rawFind && String(rawFind).charAt(0) !== '/') {
-        rawFind = `/${rawFind}/${flags}`;
+    if (flags && rawFind && String(rawFind).trim().charAt(0) !== '/') {
+        rawFind = `/${String(rawFind)}/${String(flags)}`;
     }
 
-    const placement = Array.isArray(s.placement)
-        ? s.placement.map(Number).filter(v => v === 1 || v === 2 || v === 3)
-        : [2];
+    const rawPlacement = Array.isArray(s.placement)
+        ? s.placement
+        : (
+            Array.isArray(s.placements)
+                ? s.placements
+                : [2]
+        );
+
+    const placement = rawPlacement
+        .map(Number)
+        .filter(v => v === 1 || v === 2 || v === 3);
 
     const disabled = s.disabled !== undefined
         ? s.disabled === true
@@ -2271,14 +2316,30 @@ const normWI = (e) => {
 
     return {
         scriptName: s.scriptName || s.script_name || s.name || '未命名脚本',
+
         findRegex: rawFind || '',
-        replaceString: s.replaceString ?? s.replace_string ?? s.replacement ?? '',
+
+        replaceString:
+            s.replaceString ??
+            s.replace_string ??
+            s.replacement ??
+            s.replace ??
+            '',
+
         placement: placement.length ? placement : [2],
 
         markdownOnly: s.markdownOnly === true || s.markdown_only === true,
         promptOnly: s.promptOnly === true || s.prompt_only === true,
         runOnEdit: s.runOnEdit !== false && s.run_on_edit !== false,
-        substituteRegex: s.substituteRegex === true || s.substitute_regex === true,
+
+        substituteRegex:
+            s.substituteRegex === true ||
+            s.substitute_regex === true ||
+            s.substitute === true,
+
+        trimStrings: Array.isArray(s.trimStrings)
+            ? s.trimStrings
+            : (Array.isArray(s.trim_strings) ? s.trim_strings : []),
 
         minDepth: s.minDepth ?? s.min_depth ?? null,
         maxDepth: s.maxDepth ?? s.max_depth ?? null,
@@ -2650,26 +2711,27 @@ watch(customChatBg, () => scheduleSave());
     if (!wi || wi.enabled === false) return false;
     if (!wi.keys || !wi.keys.length) return false;
 
-    const source = wi.caseSensitive ? String(text || '') : String(text || '').toLowerCase();
+    const rawText = String(text || '');
+    const source = wi.caseSensitive ? rawText : rawText.toLowerCase();
 
     return wi.keys.some(rawKey => {
         if (!rawKey) return false;
 
-        const key = wi.caseSensitive ? String(rawKey) : String(rawKey).toLowerCase();
+        const raw = String(rawKey).trim();
+        const key = wi.caseSensitive ? raw : raw.toLowerCase();
 
         if (wi.useRegex) {
-            try {
-                const re = new RegExp(String(rawKey), wi.caseSensitive ? '' : 'i');
-                return re.test(String(text || ''));
-            } catch (e) {
-                return false;
-            }
+            const re = parseRegexScript(raw);
+            if (!re) return false;
+            return re.test(rawText);
         }
 
         if (wi.matchWholeWords) {
             const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const re = new RegExp(`(^|[^\\w\\u4e00-\\u9fa5])${escaped}($|[^\\w\\u4e00-\\u9fa5])`, wi.caseSensitive ? '' : 'i');
-            return re.test(String(text || ''));
+            const flags = wi.caseSensitive ? 'g' : 'gi';
+            const re = new RegExp(`(^|[^\\w\\u4e00-\\u9fa5])${escaped}($|[^\\w\\u4e00-\\u9fa5])`, flags);
+
+            return re.test(source);
         }
 
         return source.includes(key);
@@ -2707,15 +2769,9 @@ const buildWorldInfoInjection = () => {
         };
     }
 
-    const recentText = chatHistory.value
-        .slice(-8)
-        .map(m => getDisplayContent(m))
-        .join('\n');
-
-    const active = currentCharacter.value.worldInfo
+    const allEntries = currentCharacter.value.worldInfo
         .map(normWI)
-        .filter(wi => shouldActivateWorldInfo(wi, recentText))
-        .sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+        .filter(wi => wi && wi.enabled !== false);
 
     const bucket = {
         systemTop: [],
@@ -2727,24 +2783,40 @@ const buildWorldInfoInjection = () => {
         assistantTop: []
     };
 
-    active.forEach(wi => {
-        const title = wi.comment || wi.name || (wi.keys && wi.keys[0]) || '世界书条目';
+    const active = [];
 
-        // 世界书内容可用 placement 3 的正则预处理
-        const content = applyRegexScripts(wi.content || '', 3, 'prompt').trim();
-        if (!content) return;
+    allEntries.forEach(wi => {
+        const scanDepth = Math.max(1, Number(wi.scanDepth || 3));
 
-        const block = `【世界书：${title}】\n${content}`;
+        const scanText = chatHistory.value
+            .slice(-scanDepth)
+            .map(m => getDisplayContent(m))
+            .join('\n');
 
-        if (wi.position === 'system_top') bucket.systemTop.push(block);
-        else if (wi.position === 0) bucket.beforeChar.push(block);
-        else if (wi.position === 1) bucket.afterChar.push(block);
-        else if (wi.position === 4) bucket.atDepth.push(block);
-        else if (wi.position === 'global_note') bucket.globalNote.push(block);
-        else if (wi.position === 'user_top') bucket.userTop.push(block);
-        else if (wi.position === 'assistant_top') bucket.assistantTop.push(block);
-        else bucket.afterChar.push(block);
+        if (!shouldActivateWorldInfo(wi, scanText)) return;
+
+        active.push(wi);
     });
+
+    active
+        .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
+        .forEach(wi => {
+            const title = wi.comment || wi.name || (wi.keys && wi.keys[0]) || '世界书条目';
+
+            const content = applyRegexScripts(wi.content || '', 3, 'prompt').trim();
+            if (!content) return;
+
+            const block = `【世界书：${title}】\n${content}`;
+
+            if (wi.position === 'system_top') bucket.systemTop.push(block);
+            else if (wi.position === 0) bucket.beforeChar.push(block);
+            else if (wi.position === 1) bucket.afterChar.push(block);
+            else if (wi.position === 4) bucket.atDepth.push(block);
+            else if (wi.position === 'global_note') bucket.globalNote.push(block);
+            else if (wi.position === 'user_top') bucket.userTop.push(block);
+            else if (wi.position === 'assistant_top') bucket.assistantTop.push(block);
+            else bucket.afterChar.push(block);
+        });
 
     return {
         systemTop: bucket.systemTop.join('\n\n'),
@@ -2874,8 +2946,27 @@ const getActiveLorebookCount = () => {
                                 : undefined,
 
                             regex_scripts: char.regexScripts
-                                ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
-                                : [],
+    ? char.regexScripts.map(s => {
+        const n = normRX(s);
+        return {
+            scriptName: n.scriptName,
+            name: n.scriptName,
+            findRegex: n.findRegex,
+            regex: n.findRegex,
+            replaceString: n.replaceString,
+            replacement: n.replaceString,
+            placement: n.placement,
+            markdownOnly: n.markdownOnly,
+            promptOnly: n.promptOnly,
+            runOnEdit: n.runOnEdit,
+            substituteRegex: n.substituteRegex,
+            trimStrings: n.trimStrings,
+            minDepth: n.minDepth,
+            maxDepth: n.maxDepth,
+            disabled: n.disabled
+        };
+    })
+    : [],
 
                             extensions: {
                                 statusVars: char.statusVars,
@@ -2932,9 +3023,27 @@ const getActiveLorebookCount = () => {
                                             : undefined,
 
                                         regex_scripts: char.regexScripts
-                                            ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
-                                            : [],
-
+    ? char.regexScripts.map(s => {
+        const n = normRX(s);
+        return {
+            scriptName: n.scriptName,
+            name: n.scriptName,
+            findRegex: n.findRegex,
+            regex: n.findRegex,
+            replaceString: n.replaceString,
+            replacement: n.replaceString,
+            placement: n.placement,
+            markdownOnly: n.markdownOnly,
+            promptOnly: n.promptOnly,
+            runOnEdit: n.runOnEdit,
+            substituteRegex: n.substituteRegex,
+            trimStrings: n.trimStrings,
+            minDepth: n.minDepth,
+            maxDepth: n.maxDepth,
+            disabled: n.disabled
+        };
+    })
+    : [],
                                         extensions: {
                                             statusVars: char.statusVars,
                                             uiTemplates: char.uiTemplates
@@ -3156,46 +3265,102 @@ const getActiveLorebookCount = () => {
 const parseRegexScript = (raw) => {
     if (!raw) return null;
 
-    try {
-        const match = String(raw).match(/^\/([\s\S]*)\/([gimsuy]*)$/);
-        if (match) return new RegExp(match[1], match[2]);
+    const src = String(raw).trim();
+    if (!src) return null;
 
-        return new RegExp(String(raw), 'g');
+    try {
+        if (src[0] === '/') {
+            let lastSlash = -1;
+            let escaped = false;
+
+            for (let i = 1; i < src.length; i++) {
+                const ch = src[i];
+
+                if (escaped) {
+                    escaped = false;
+                    continue;
+                }
+
+                if (ch === '\\') {
+                    escaped = true;
+                    continue;
+                }
+
+                if (ch === '/') {
+                    lastSlash = i;
+                }
+            }
+
+            if (lastSlash > 0) {
+                const pattern = src.slice(1, lastSlash);
+                let flags = src.slice(lastSlash + 1).replace(/[^gimsuy]/g, '');
+
+                if (!flags.includes('g')) flags += 'g';
+
+                return new RegExp(pattern, flags);
+            }
+        }
+
+        return new RegExp(src, 'g');
     } catch (e) {
-        console.warn('正则解析失败：', raw, e);
+        console.warn('[miao-regex] 正则解析失败：', raw, e);
         return null;
     }
 };
-
-const applyRegexScripts = (text, roleNumber, mode = 'display') => {
+const applyRegexScripts = (text, roleNumber, mode = 'display', depth = 0) => {
     if (!text || !currentCharacter.value || !Array.isArray(currentCharacter.value.regexScripts)) {
         return text || '';
     }
 
     let output = String(text);
-    const maxLayers = settings.maxRenderLayers || 3;
+    const maxLayers = Math.max(1, Number(settings.maxRenderLayers || 3));
+
+    const scripts = currentCharacter.value.regexScripts
+        .map(normRX)
+        .filter(script => {
+            if (!script || script.disabled) return false;
+            if (!script.findRegex) return false;
+
+            const placements = Array.isArray(script.placement)
+                ? script.placement.map(Number)
+                : [2];
+
+            if (!placements.includes(roleNumber)) return false;
+
+            if (mode === 'display' && script.promptOnly) return false;
+            if (mode === 'prompt' && script.markdownOnly) return false;
+
+            if (script.minDepth !== null && script.minDepth !== undefined && depth < Number(script.minDepth)) return false;
+            if (script.maxDepth !== null && script.maxDepth !== undefined && depth > Number(script.maxDepth)) return false;
+
+            return true;
+        });
 
     for (let layer = 0; layer < maxLayers; layer++) {
         let changed = false;
 
-        currentCharacter.value.regexScripts.forEach(script => {
-            if (!script || script.disabled) return;
-            if (!script.findRegex || !script.replaceString) return;
-
-            const placements = Array.isArray(script.placement) ? script.placement.map(Number) : [2];
-            if (!placements.includes(roleNumber)) return;
-
-            // 展示模式：跳过仅提示词正则
-            if (mode === 'display' && script.promptOnly) return;
-
-            // 提示词模式：跳过仅渲染正则
-            if (mode === 'prompt' && script.markdownOnly) return;
-
+        scripts.forEach(script => {
             const re = parseRegexScript(script.findRegex);
             if (!re) return;
 
             const old = output;
-            output = output.replace(re, script.replaceString);
+
+            output = output.replace(re, script.replaceString ?? '');
+
+            if (script.substituteRegex && script.replaceString) {
+                const subRe = parseRegexScript(script.replaceString);
+                if (subRe) {
+                    output = output.replace(subRe, '');
+                }
+            }
+
+            if (Array.isArray(script.trimStrings) && script.trimStrings.length) {
+                script.trimStrings.forEach(t => {
+                    if (!t) return;
+                    output = output.split(String(t)).join('');
+                });
+            }
+
             if (old !== output) changed = true;
         });
 
@@ -3204,7 +3369,6 @@ const applyRegexScripts = (text, roleNumber, mode = 'display') => {
 
     return output;
 };
-
                 const renderCustomMarkdown = (text, role) => {
                     if (!text) return '';
                     let processed = text;
@@ -3289,17 +3453,53 @@ parsedText = applyRegexScripts(parsedText, roleNumber, 'display');
 
                     const wiPack = buildWorldInfoInjection();
 
-let sysPrompt = `${wiPack.systemTop ? wiPack.systemTop + '\n\n' : ''}${wiPack.beforeChar ? wiPack.beforeChar + '\n\n' : ''}你现在扮演：${currentCharacter.value.name}
-${currentCharacter.value.personality || ''}
+const promptRole = 3;
+
+const charPersonalityForAI = applyRegexScripts(
+    currentCharacter.value.personality || '',
+    promptRole,
+    'prompt'
+);
+
+const charScenarioForAI = applyRegexScripts(
+    currentCharacter.value.scenario || '',
+    promptRole,
+    'prompt'
+);
+
+const personaDescForAI = applyRegexScripts(
+    activePersona.value.description || '',
+    promptRole,
+    'prompt'
+);
+
+const charSystemPromptForAI = applyRegexScripts(
+    currentCharacter.value.system_prompt || '',
+    promptRole,
+    'prompt'
+);
+
+const charPostPromptForAI = applyRegexScripts(
+    currentCharacter.value.post_history_instructions || '',
+    promptRole,
+    'prompt'
+);
+
+let sysPrompt = `${wiPack.systemTop ? wiPack.systemTop + '\n\n' : ''}${charSystemPromptForAI ? '【角色系统提示】\n' + charSystemPromptForAI + '\n\n' : ''}${wiPack.beforeChar ? wiPack.beforeChar + '\n\n' : ''}你现在扮演：${currentCharacter.value.name}
+${charPersonalityForAI}
 
 ${wiPack.afterChar ? wiPack.afterChar + '\n\n' : ''}场景：
-${currentCharacter.value.scenario || ''}
+${charScenarioForAI}
 
 当前与角色对话的主角：
 姓名：${activePersona.value.name}
-${activePersona.value.description || ''}
+${personaDescForAI}
 
-${wiPack.globalNote ? '【全局备注】\n' + wiPack.globalNote + '\n\n' : ''}${wiPack.atDepth ? '【深度注入】\n' + wiPack.atDepth + '\n\n' : ''}${statusStr}`;
+${wiPack.globalNote ? '【全局备注】\n' + wiPack.globalNote + '\n\n' : ''}${wiPack.atDepth ? '【深度注入】\n' + wiPack.atDepth + '\n\n' : ''}${statusStr}
+
+${charPostPromptForAI ? '【后置指令】\n' + charPostPromptForAI : ''}`;
+
+sysPrompt = applyRegexScripts(sysPrompt, promptRole, 'prompt');
                     let messages = [{ role: 'system', content: sysPrompt }];
                     const contextHistory = isRegenerate ? chatHistory.value.slice(0, msgIndex) : chatHistory.value;
                     messages = messages.concat(contextHistory.map(m => {
