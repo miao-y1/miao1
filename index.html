@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -59,7 +59,7 @@
         }
 
         body {
-            background-color: #1A1A1A;
+    background-color: #FCFAF6;
             color: #2A2C2E;
             font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             overflow: hidden;
@@ -168,8 +168,10 @@
         }
 
         .chat-room-shell {
-            min-height: 0;
-        }
+    min-height: 0;
+    height: 100dvh;
+    background-color: #FCFAF6;
+}
 
         .mobile-panel-full {
             height: 100dvh;
@@ -214,14 +216,29 @@
         padding-bottom: 68px;
     }
 
+    main:has(.chat-room-shell) {
+        padding-bottom: 0 !important;
+    }
+
     .chat-input-dock {
-        padding-bottom: max(78px, env(safe-area-inset-bottom));
+        padding-bottom: max(14px, env(safe-area-inset-bottom)) !important;
     }
 }
 
     .image-gen-scroll {
-        padding-bottom: 96px;
-    }
+    padding-bottom: 96px;
+}
+
+.image-preview-frame {
+    position: relative;
+    background: #F5F1E8;
+}
+
+.image-preview-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
 
         @keyframes messageFadeIn {
             from { opacity: 0; transform: translateY(8px); }
@@ -240,13 +257,189 @@
         .sidebar-icon-only nav button {
             justify-content: center;
         }
+
+.app-loading-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(252, 250, 246, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.app-loading-card {
+    padding: 18px 22px;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid rgba(197,168,128,0.25);
+    box-shadow: 0 12px 32px -16px rgba(42,44,46,0.22);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #2A2C2E;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+.app-loading-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(197,168,128,.35);
+    border-top-color: #C5A880;
+    border-radius: 999px;
+    animation: spinFix 0.8s linear infinite;
+}
+
+@keyframes spinFix {
+    to { transform: rotate(360deg); }
+}
+
+/* ===== 修复移动端底部黑边、安全区与 100vh 抖动 ===== */
+html,
+body,
+#app {
+    background: #FCFAF6;
+}
+
+body {
+    min-height: 100svh;
+}
+
+@supports (height: 100dvh) {
+    html,
+    body,
+    #app {
+        height: 100dvh;
+        min-height: 100dvh;
+    }
+}
+
+@supports not (height: 100dvh) {
+    html,
+    body,
+    #app {
+        height: -webkit-fill-available;
+        min-height: -webkit-fill-available;
+    }
+}
+
+.chat-room-shell {
+    height: 100dvh;
+    min-height: 100dvh;
+    background-color: #FCFAF6;
+}
+
+@supports not (height: 100dvh) {
+    .chat-room-shell {
+        height: -webkit-fill-available;
+        min-height: -webkit-fill-available;
+    }
+}
+
+/* 聊天室不让 main 的移动端底部 padding 顶出黑边 */
+@media (max-width: 520px) {
+    main {
+        padding-bottom: 0 !important;
+    }
+
+    main:has(.chat-room-shell) {
+        padding-bottom: 0 !important;
+    }
+
+    .chat-input-dock {
+        padding-bottom: max(14px, env(safe-area-inset-bottom)) !important;
+    }
+
+    .chat-scroll-area {
+        padding-bottom: 12px;
+    }
+}
+
+/* 生图页底部给移动端导航留空间，但不污染聊天室 */
+.image-gen-scroll {
+    padding-bottom: max(96px, env(safe-area-inset-bottom));
+}
+
+/* 图片预览加载态 */
+.image-preview-frame {
+    position: relative;
+    background: #F5F1E8;
+}
+
+.image-preview-frame img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* 全局页面加载遮罩 */
+.app-loading-mask {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(252, 250, 246, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.app-loading-card {
+    padding: 18px 22px;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid rgba(197,168,128,0.25);
+    box-shadow: 0 12px 32px -16px rgba(42,44,46,0.22);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #2A2C2E;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+.app-loading-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(197,168,128,.35);
+    border-top-color: #C5A880;
+    border-radius: 999px;
+    animation: spinFix 0.8s linear infinite;
+}
+
+@keyframes spinFix {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 520px) {
+    .chat-main-clean {
+        padding-bottom: 0 !important;
+        background-color: #FCFAF6;
+    }
+}
     </style>
 </head>
 
 <body class="sans-body relative w-screen h-screen select-none overflow-hidden">
-
+     <div v-if="!appReady" class="app-loading-mask">
+    <div class="app-loading-card">
+        <span class="app-loading-spinner"></span>
+        <span>正在载入本地配置</span>
+    </div>
+</div>
     <div id="app" class="relative w-full h-full flex overflow-hidden z-10" :style="globalBgStyle">
-        
+        <div v-if="!appReady" class="app-loading-mask">
+            <div class="app-loading-card">
+                <span class="app-loading-spinner"></span>
+                <span>正在载入本地配置</span>
+            </div>
+        </div>
         <!-- 全景壁纸与轻量滤镜 -->
         <div class="absolute inset-0 bg-cover bg-center z-0 transition-opacity duration-300" :style="wallpaperStyle"></div>
         <div class="absolute inset-0 z-0 pointer-events-none transition-opacity duration-300"
@@ -494,7 +687,7 @@
         <!-- ================= MAIN VIEWPORT ================= -->
         <main class="flex-1 flex flex-col relative min-w-0 z-10 overflow-hidden premium-transition"
               :class="currentView === 'chat_room'
-                ? 'h-[100dvh] m-0 rounded-none bg-transparent shadow-none'
+                ? 'h-[100dvh] m-0 rounded-none bg-transparent shadow-none chat-main-clean'
                 : 'h-[100dvh] md:h-[96vh] md:my-[2vh] md:mx-[2vh] rounded-none md:rounded-[28px] glass-panel shadow-premium'"
               @click="closeDropdowns">
             
@@ -865,11 +1058,19 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-brand-beige/20 p-3.5 rounded-xl border border-brand-softGray/60">
                                     <div>
                                         <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1">生图接口地址 (默认 OpenAI Base URL)</label>
-                                        <input type="text" v-model="imageSettings.apiUrl" class="w-full bg-white border border-brand-softGray rounded-lg py-1.5 px-3 text-xs font-mono outline-none focus:border-brand-gold">
+                                        <input type="text"
+       v-model="settings.apiUrl"
+       :disabled="!appReady"
+       :placeholder="appReady ? 'https://api.openai.com/v1' : '正在载入配置...'"
+       class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold disabled:opacity-60">
                                     </div>
                                     <div>
                                         <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1">专属生图 Key (API Token)</label>
-                                        <input type="password" v-model="imageSettings.apiKey" placeholder="输入生图专用认证密钥" class="w-full bg-white border border-brand-softGray rounded-lg py-1.5 px-3 text-xs font-mono outline-none focus:border-brand-gold">
+                                        <input type="password"
+       v-model="settings.apiKey"
+       :disabled="!appReady"
+       :placeholder="appReady ? '输入 API Key' : '正在载入配置...'"
+       class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold disabled:opacity-60">
                                     </div>
                                 </div>
 
@@ -955,13 +1156,41 @@
 
                                 <div v-show="!collapsedPanels.imagePreview" class="p-4 sm:p-5 flex flex-col items-center justify-center text-center min-h-[240px] sm:min-h-[300px]">
                                     <template v-if="generatedImage">
-                                        <div class="w-full border border-brand-softGray rounded-xl overflow-hidden shadow-soft mb-4 max-h-[350px]">
-                                            <img :src="generatedImage" class="w-full h-full object-contain mx-auto max-h-[260px] sm:max-h-[350px]" alt="生成的梦境画卷">
-                                        </div>
-                                        <button @click="downloadDreamImage" class="px-5 py-2.5 bg-brand-gold text-brand-ink rounded-xl text-xs font-bold shadow-soft hover:bg-brand-goldHover hover:text-white transition flex items-center gap-2">
-                                            下载图片
-                                        </button>
-                                    </template>
+    <template v-if="generatedImage">
+    <div class="w-full border border-brand-softGray rounded-xl overflow-hidden shadow-soft mb-4 max-h-[350px] image-preview-frame">
+        <div v-if="imagePreviewLoading"
+             class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-brand-warmWhite/85">
+            <div class="w-8 h-8 border-2 border-brand-gold border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p class="text-[10px] text-brand-gray font-bold tracking-widest">正在载入预览</p>
+        </div>
+
+        <img :src="generatedImage"
+             class="w-full object-contain mx-auto max-h-[260px] sm:max-h-[350px]"
+             alt="生成的梦境画卷"
+             referrerpolicy="no-referrer"
+             @load="onDreamImageLoad"
+             @error="onDreamImageError">
+    </div>
+
+    <p v-if="imagePreviewError"
+       class="text-[10px] text-red-500 font-bold leading-relaxed mb-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2">
+        {{ imagePreviewError }}
+    </p>
+
+    <div class="flex flex-wrap gap-2 justify-center">
+        <button @click="downloadDreamImage"
+                class="px-5 py-2.5 bg-brand-gold text-brand-ink rounded-xl text-xs font-bold shadow-soft hover:bg-brand-goldHover hover:text-white transition flex items-center gap-2">
+            下载图片
+        </button>
+
+        <a :href="generatedImage"
+           target="_blank"
+           rel="noreferrer"
+           class="px-5 py-2.5 bg-white border border-brand-softGray text-brand-ink rounded-xl text-xs font-bold shadow-soft hover:bg-brand-softGray transition flex items-center gap-2">
+            新窗口打开
+        </a>
+    </div>
+</template>
                                     <template v-else-if="isGeneratingImage">
                                         <div class="space-y-4">
                                             <div class="w-16 h-16 border-4 border-brand-gold border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -1563,12 +1792,20 @@
                             <div v-show="!collapsedPanels.settingsApi" class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div>
                                     <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1.5">API Base URL</label>
-                                    <input type="text" v-model="settings.apiUrl" class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold">
+                                    <input type="text"
+       v-model="settings.apiUrl"
+       :disabled="!appReady"
+       :placeholder="appReady ? 'https://api.openai.com/v1' : '正在载入配置...'"
+       class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold disabled:opacity-60">
                                 </div>
                                 
                                 <div>
                                     <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1.5">API Key</label>
-                                    <input type="password" v-model="settings.apiKey" class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold">
+                                    <input type="password"
+       v-model="settings.apiKey"
+       :disabled="!appReady"
+       :placeholder="appReady ? '输入 API Key' : '正在载入配置...'"
+       class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold disabled:opacity-60">
                                 </div>
 
                                 <div class="sm:col-span-2 flex gap-2 flex-wrap">
@@ -1711,7 +1948,7 @@
 
     <!-- 核心逻辑 Vue 3 App -->
     <script>
-        const { createApp, ref, reactive, computed, onMounted, watch, nextTick } = Vue;
+        const { createApp, ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick } = Vue;
 
         const generateUUID = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
             var r = Math.random() * 16 | 0;
@@ -1851,10 +2088,11 @@
             setup() {
                 const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI0M1QTg4MCIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDAiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjMzZW0iPk08L3RleHQ+PC9zdmc+';
 
-                const currentView = ref('lobby');
-                const showMobileMenu = ref(false);
-                const sidebarCollapsed = ref(false);
-const isMobileCompact = ref(false);
+const appReady = ref(false);
+
+const currentView = ref('lobby');
+const showMobileMenu = ref(false);
+const sidebarCollapsed = ref(false);
 
 const updateMobileState = () => {
     isMobileCompact.value = window.innerWidth < 768;
@@ -1898,7 +2136,8 @@ const updateMobileState = () => {
 
                 const isGeneratingImage = ref(false);
                 const generatedImage = ref('');
-
+                const imagePreviewLoading = ref(false);
+                const imagePreviewError = ref('');
                 const imageSettings = reactive({
                     apiUrl: 'https://api.openai.com/v1',
                     apiKey: '',
@@ -2108,6 +2347,10 @@ const saveData = () => {
         localStorage.setItem('miao_custom_chat_bg', customChatBg.value || '');
         localStorage.setItem('miao_image_settings', JSON.stringify(imageSettings));
         localStorage.setItem('miao_sidebar_collapsed', sidebarCollapsed.value ? '1' : '0');
+
+if (currentCharacter.value?.uuid) {
+    localStorage.setItem('miao_current_character_uuid', currentCharacter.value.uuid);
+}
 
         const draftPayload = JSON.stringify({
     id: editingCharacter.id,
@@ -2684,7 +2927,7 @@ ${statusStr}`;
                     let newSwipeContent = '';
 
                     try {
-                        const res = await fetch(`${settings.apiUrl}/chat/completions`, {
+                        const res = await fetch(`${settings.apiUrl.replace(/\/$/, '')}/chat/completions`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -2817,7 +3060,7 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
 `;
 
                     try {
-                        const res = await fetch(`${settings.apiUrl}/chat/completions`, {
+                        const res = await fetch(`${settings.apiUrl.replace(/\/$/, '')}/chat/completions`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -2916,7 +3159,7 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                     }
 
                     try {
-                        const res = await fetch(`${settings.apiUrl}/chat/completions`, {
+                        const res = await fetch(`${settings.apiUrl.replace(/\/$/, '')}/chat/completions`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -3047,7 +3290,7 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                 const testConnection = async () => {
                     isTestingConn.value = true;
                     try {
-                        const response = await fetch(`${settings.apiUrl}/models`, {
+                        const response = await fetch(`${settings.apiUrl.replace(/\/$/, '')}/models`, {
                             method: 'GET',
                             headers: { 'Authorization': `Bearer ${settings.apiKey}` }
                         });
@@ -3067,7 +3310,7 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                 const fetchModels = async () => {
                     isFetchingModels.value = true;
                     try {
-                        const response = await fetch(`${settings.apiUrl}/models`, {
+                        const response = await fetch(`${settings.apiUrl.replace(/\/$/, '')}/models`, {
                             method: 'GET',
                             headers: { 'Authorization': `Bearer ${settings.apiKey}` }
                         });
@@ -3247,16 +3490,89 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                     showToast(`已应用画师预设 ${num}。`);
                 };
 
-                const generateDreamImage = async () => {
-                    if (!imageSettings.apiKey) {
-                        showToast("请先配置生图 API Key。", "error");
-                        return;
-                    }
+                   const extractImageFromResponse = (raw) => {
+    if (!raw) return '';
 
-                    isGeneratingImage.value = true;
-                    generatedImage.value = '';
+    let content = String(raw).trim();
 
-                    const contentPayload = `提示词:${imageSettings.prompt}
+    try {
+        const parsed = JSON.parse(content);
+        const candidates = [
+            parsed.url,
+            parsed.image,
+            parsed.image_url,
+            parsed.output,
+            parsed.result,
+            parsed.data?.[0]?.url,
+            parsed.data?.[0]?.b64_json,
+            parsed.images?.[0]
+        ].filter(Boolean);
+
+        if (candidates.length) {
+            content = String(candidates[0]).trim();
+        }
+    } catch (e) {}
+
+    const mdMatch = content.match(/!\[[^\]]*?\]\((.*?)\)/);
+    if (mdMatch && mdMatch[1]) return mdMatch[1].trim();
+
+    const htmlImg = content.match(/<img[^>]+src=["']([^"']+)["']/i);
+    if (htmlImg && htmlImg[1]) return htmlImg[1].trim();
+
+    const dataMatch = content.match(/data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=\s]+/);
+    if (dataMatch) return dataMatch[0].replace(/\s/g, '');
+
+    const urlMatch = content.match(/https?:\/\/[^\s"'<>）)]+/);
+    if (urlMatch) {
+        return urlMatch[0].replace(/[，。；;、]+$/g, '').trim();
+    }
+
+    const base64Match = content.match(/([A-Za-z0-9+/]{120,}=*)/);
+    if (base64Match) return `data:image/png;base64,${base64Match[1]}`;
+
+    return '';
+};
+
+const normalizeImageUrl = (url) => {
+    if (!url) return '';
+
+    let finalUrl = String(url)
+        .trim()
+        .replace(/&amp;/g, '&')
+        .replace(/^["']|["']$/g, '');
+
+    if (finalUrl.startsWith('data:image')) return finalUrl;
+
+    if (finalUrl.startsWith('http')) {
+        const joiner = finalUrl.includes('?') ? '&' : '?';
+        finalUrl = `${finalUrl}${joiner}_miao_preview=${Date.now()}`;
+    }
+
+    return finalUrl;
+};
+
+const onDreamImageLoad = () => {
+    imagePreviewLoading.value = false;
+    imagePreviewError.value = '';
+};
+
+const onDreamImageError = () => {
+    imagePreviewLoading.value = false;
+    imagePreviewError.value = '图片地址已返回，但浏览器无法加载。可能是链接过期、防盗链、返回内容不是图片，或服务端禁止外链显示。';
+};
+
+const generateDreamImage = async () => {
+    if (!imageSettings.apiKey) {
+        showToast("请先配置生图 API Key。", "error");
+        return;
+    }
+
+    isGeneratingImage.value = true;
+    imagePreviewLoading.value = false;
+    imagePreviewError.value = '';
+    generatedImage.value = '';
+
+    const contentPayload = `提示词:${imageSettings.prompt}
 画师串:${imageSettings.artist}
 尺寸:${imageSettings.size}
 提示词引导值:${imageSettings.cfg}
@@ -3264,52 +3580,55 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
 负面提示词:${imageSettings.negativePrompt}
 采样器:${imageSettings.sampler}`;
 
-                    try {
-                        const res = await fetch(`${imageSettings.apiUrl}/chat/completions`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${imageSettings.apiKey}`
-                            },
-                            body: JSON.stringify({
-                                model: imageSettings.model,
-                                messages: [{ role: "user", content: contentPayload }]
-                            })
-                        });
+    try {
+        const res = await fetch(`${imageSettings.apiUrl.replace(/\/$/, '')}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${imageSettings.apiKey}`
+            },
+            body: JSON.stringify({
+                model: imageSettings.model,
+                messages: [{ role: "user", content: contentPayload }],
+                stream: false
+            })
+        });
 
-                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+            const errText = await res.text().catch(() => '');
+            throw new Error(`HTTP ${res.status}${errText ? '：' + errText.slice(0, 120) : ''}`);
+        }
 
-                        const resultData = await res.json();
-                        const content = resultData.choices?.[0]?.message?.content || '';
+        const resultData = await res.json();
 
-                        const mdMatch = content.match(/!\[.*?\]\((.*?)\)/);
-                        const urlMatch = content.match(/https?:\/\/[^\s)]+/);
+        const content =
+            resultData.choices?.[0]?.message?.content ||
+            resultData.data?.[0]?.url ||
+            resultData.data?.[0]?.b64_json ||
+            resultData.url ||
+            resultData.image ||
+            resultData.output ||
+            resultData.result ||
+            '';
 
-                        let finalImg = '';
-                        if (mdMatch) finalImg = mdMatch[1];
-                        else if (urlMatch) finalImg = urlMatch[0];
-                        else if (content.startsWith('data:image')) finalImg = content;
-                        else finalImg = content.trim();
+        const extracted = extractImageFromResponse(content);
+        const finalImg = normalizeImageUrl(extracted);
 
-                        if (finalImg && (finalImg.startsWith('http') || finalImg.startsWith('data:image'))) {
-                            generatedImage.value = finalImg;
-                            showToast("图片已生成。");
-                        } else {
-                            const base64Match = content.match(/([A-Za-z0-9+/]{80,}=*)/);
-                            if (base64Match) {
-                                generatedImage.value = `data:image/png;base64,${base64Match[1]}`;
-                                showToast("图片已生成。");
-                            } else {
-                                throw new Error("返回内容中未提取到图片 URL 或 Base64。");
-                            }
-                        }
-                    } catch (e) {
-                        showToast(`生图失败：${e.message}`, "error");
-                    } finally {
-                        isGeneratingImage.value = false;
-                    }
-                };
+        if (!finalImg || !(finalImg.startsWith('http') || finalImg.startsWith('data:image'))) {
+            throw new Error("返回内容中未提取到可预览的图片地址或 Base64。");
+        }
 
+        imagePreviewLoading.value = true;
+        generatedImage.value = finalImg;
+        showToast("图片地址已获取，正在载入预览。", "success");
+
+    } catch (e) {
+        imagePreviewError.value = e.message;
+        showToast(`生图失败：${e.message}`, "error");
+    } finally {
+        isGeneratingImage.value = false;
+    }
+};
                 const downloadDreamImage = async () => {
     if (!generatedImage.value) return;
 
@@ -3370,25 +3689,147 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                     return {};
                 });
 
-                const chatRoomBgStyle = computed(() => {
-                    const bg = customChatBg.value || settings.chatBackground;
-                    if (bg) {
-                        return {
-                            backgroundImage: `url(${bg})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            backgroundRepeat: 'no-repeat'
-                        };
-                    }
-                    return { background: 'transparent' };
-                });
+const chatRoomBgStyle = computed(() => {
+    const bg = customChatBg.value || settings.chatBackground;
+    if (bg) {
+        return {
+            backgroundImage: `url(${bg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+        };
+    }
+    return {
+        background: '#FCFAF6'
+    };
+});
+
+const safeJsonParse = (raw, fallback) => {
+    if (!raw) return fallback;
+    try {
+        return JSON.parse(raw);
+    } catch (e) {
+        console.warn('本地数据解析失败：', e);
+        return fallback;
+    }
+};
+
+const mergeReactive = (target, source) => {
+    if (!source || typeof source !== 'object') return;
+    Object.keys(source).forEach(key => {
+        if (key in target) target[key] = source[key];
+    });
+};
+
+const loadData = () => {
+    appReady.value = false;
+
+    try {
+        const savedChars = safeJsonParse(localStorage.getItem('miao_chars'), []);
+        if (Array.isArray(savedChars)) {
+            characters.value = savedChars.map(c => ({
+                uuid: c.uuid || generateUUID(),
+                name: c.name || '未命名角色',
+                description: c.description || '',
+                first_mes: c.first_mes || '',
+                avatar: c.avatar || defaultAvatar,
+                personality: c.personality || '',
+                scenario: c.scenario || '',
+                mes_example: c.mes_example || '',
+                system_prompt: c.system_prompt || '',
+                post_history_instructions: c.post_history_instructions || '',
+                statusVars: c.statusVars || { affection: 50, trust: 30, dependency: 20 },
+                worldInfo: Array.isArray(c.worldInfo) ? c.worldInfo.map(normWI) : [],
+                regexScripts: Array.isArray(c.regexScripts) ? c.regexScripts.map(normRX) : [],
+                uiTemplates: Array.isArray(c.uiTemplates) ? c.uiTemplates.map(normUI) : []
+            }));
+        }
+
+        const savedProfiles = safeJsonParse(localStorage.getItem('miao_user_profiles'), null);
+        if (Array.isArray(savedProfiles) && savedProfiles.length) {
+            userProfiles.value = savedProfiles.map(p => ({
+                uuid: p.uuid || generateUUID(),
+                name: p.name || '主角',
+                description: p.description || '',
+                avatar: p.avatar || ''
+            }));
+        }
+
+        const savedPersonaIdx = Number(localStorage.getItem('miao_active_persona_idx'));
+        activePersonaIndex.value =
+            !Number.isNaN(savedPersonaIdx) &&
+            savedPersonaIdx >= 0 &&
+            savedPersonaIdx < userProfiles.value.length
+                ? savedPersonaIdx
+                : 0;
+
+        const savedSettings = safeJsonParse(localStorage.getItem('miao_settings'), null);
+        if (savedSettings) mergeReactive(settings, savedSettings);
+
+        if (!settings.apiUrl) settings.apiUrl = 'https://api.openai.com/v1';
+        if (!settings.model) settings.model = 'gpt-4o-mini';
+        if (!settings.dialogueFontSize) settings.dialogueFontSize = '15px';
+        if (!settings.maxRenderLayers) settings.maxRenderLayers = 3;
+
+        const savedImageSettings = safeJsonParse(localStorage.getItem('miao_image_settings'), null);
+        if (savedImageSettings) mergeReactive(imageSettings, savedImageSettings);
+
+        if (!imageSettings.apiUrl) imageSettings.apiUrl = 'https://api.openai.com/v1';
+        if (!imageSettings.model) imageSettings.model = 'nai-diffusion-4-5-full:k_dpmpp_2m_sde';
+        if (!imageSettings.prompt) imageSettings.prompt = '1girl, masterpiece, best quality';
+        if (!imageSettings.size) imageSettings.size = '竖图';
+        if (!imageSettings.sampler) imageSettings.sampler = 'k_dpmpp_2m_sde';
+
+        const savedModels = safeJsonParse(localStorage.getItem('miao_models_list'), []);
+        if (Array.isArray(savedModels)) modelsList.value = savedModels;
+
+        customChatBg.value = localStorage.getItem('miao_custom_chat_bg') || '';
+        sidebarCollapsed.value = localStorage.getItem('miao_sidebar_collapsed') === '1';
+
+        const lastCharUuid = localStorage.getItem('miao_current_character_uuid');
+        if (lastCharUuid) {
+            const restoredIndex = characters.value.findIndex(c => c.uuid === lastCharUuid);
+            if (restoredIndex >= 0) {
+                currentCharacterIndex.value = restoredIndex;
+                const char = characters.value[restoredIndex];
+                const savedChat = safeJsonParse(localStorage.getItem(`miao_chat_${char.uuid}`), []);
+                chatHistory.value = Array.isArray(savedChat) ? savedChat : [];
+                editCharacter(restoredIndex);
+            }
+        }
+
+        const savedDraft = safeJsonParse(localStorage.getItem('miao_editor_draft'), null);
+        if (savedDraft && !savedDraft.skipped && savedDraft.data) {
+            editingCharacter.id = savedDraft.id;
+            editingCharacter.data = {
+                ...editingCharacter.data,
+                ...savedDraft.data,
+                statusVars: savedDraft.data.statusVars || {},
+                worldInfo: Array.isArray(savedDraft.data.worldInfo) ? savedDraft.data.worldInfo.map(normWI) : [],
+                regexScripts: Array.isArray(savedDraft.data.regexScripts) ? savedDraft.data.regexScripts.map(normRX) : [],
+                uiTemplates: Array.isArray(savedDraft.data.uiTemplates) ? savedDraft.data.uiTemplates.map(normUI) : []
+            };
+            if (savedDraft.editorTab) editorTab.value = savedDraft.editorTab;
+        } else if (characters.value[0] && editingCharacter.id === undefined) {
+            editingCharacter.id = 0;
+            editingCharacter.data = JSON.parse(JSON.stringify(characters.value[0]));
+        }
+
+    } catch (e) {
+        console.error('载入本地数据失败：', e);
+        showToast('本地数据载入失败，已使用默认配置。', 'error');
+    } finally {
+        nextTick(() => {
+            appReady.value = true;
+        });
+    }
+};
 
 onMounted(() => {
     loadData();
 
-
-updateMobileState();
-window.addEventListener('resize', updateMobileState);
+    updateMobileState();
+    window.addEventListener('resize', updateMobileState);
 
     if (characters.value.length === 0) {
         addPlazaToWarehouse(plazaCharacters[0]);
@@ -3405,11 +3846,18 @@ window.addEventListener('resize', updateMobileState);
     window.addEventListener('pagehide', saveData);
 });
 
-                return {
-                    currentView,
-                    showMobileMenu,
-                    sidebarCollapsed,
-                    isMobileCompact,
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', updateMobileState);
+    window.removeEventListener('beforeunload', saveData);
+    window.removeEventListener('pagehide', saveData);
+});
+               return {
+    appReady,
+
+    currentView,
+    showMobileMenu,
+    sidebarCollapsed,
+    isMobileCompact,
                     showCharacterEditor,
                     editorTab,
 
@@ -3531,11 +3979,15 @@ window.addEventListener('resize', updateMobileState);
                     chatRoomBgStyle,
 
                     imageSettings,
-                    isGeneratingImage,
-                    generatedImage,
-                    generateDreamImage,
-                    downloadDreamImage,
-                    applyArtistPreset,
+isGeneratingImage,
+generatedImage,
+imagePreviewLoading,
+imagePreviewError,
+generateDreamImage,
+downloadDreamImage,
+applyArtistPreset,
+onDreamImageLoad,
+onDreamImageError,
 
                     collapsedPanels,
                     togglePanel
