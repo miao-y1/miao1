@@ -3818,13 +3818,15 @@ const loadData = () => {
     } catch (e) {
         console.error('载入本地数据失败：', e);
         showToast('本地数据载入失败，已使用默认配置。', 'error');
-    } finally {
-        nextTick(() => {
+
+ } finally {
+        appReady.value = true;
+
+        setTimeout(() => {
             appReady.value = true;
-        });
+        }, 300);
     }
 };
-
 onMounted(() => {
     loadData();
 
