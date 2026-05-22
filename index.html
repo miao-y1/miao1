@@ -736,9 +736,10 @@ body {
 
                     <div class="mt-auto p-2.5 bg-white/50 border border-brand-softGray rounded-2xl mb-1">
                         <p class="text-[10px] text-brand-ink font-bold leading-relaxed mb-2">流光卡片导出</p>
-                        <div class="flex gap-2">
-                            <button @click="exportCharacter(currentCharacterIndex)" class="flex-1 py-1.5 bg-brand-ink text-white rounded-lg text-[9px] font-black">JSON</button>
-<button @click="exportPNG" class="flex-1 py-1.5 bg-brand-gold text-white rounded-lg text-[9px] font-black">PNG</button>
+                            <div class="flex gap-2">
+    <button @click="exportCharacter(currentCharacterIndex)" class="flex-1 py-1.5 bg-brand-ink text-white rounded-lg text-[9px] font-black">JSON</button>
+    <button @click="exportPNG" class="flex-1 py-1.5 bg-brand-gold text-white rounded-lg text-[9px] font-black">PNG</button>
+</div>
                         </div>
                     </div>
                 </template>
@@ -2969,6 +2970,7 @@ const getActiveLorebookCount = () => {
 
                     img.src = char.avatar || defaultAvatar;
                 };
+                const importCharacterFile = (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
                     const ext = file.name.split('.').pop().toLowerCase();
