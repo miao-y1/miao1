@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -192,26 +192,26 @@
             }
         }
 
-        @media (max-width: 520px) {
-            .glass-panel {
-                backdrop-filter: none;
-                -webkit-backdrop-filter: none;
-                background: rgba(255,255,255,0.88);
-            }
+@media (max-width: 520px) {
+    .glass-panel {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(255,255,255,0.88);
+    }
 
-            .chat-scroll-area {
-                padding-left: 12px;
-                padding-right: 12px;
-            }
-        }
+    .chat-scroll-area {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
 
-main {
+    main {
         padding-bottom: 68px;
     }
 
     .chat-input-dock {
         padding-bottom: max(78px, env(safe-area-inset-bottom));
     }
+}
 
         @keyframes messageFadeIn {
             from { opacity: 0; transform: translateY(8px); }
@@ -338,7 +338,7 @@ main {
             </div>
 
             <!-- Elegant Tab Menu -->
-            <nav class="px-3 py-1 flex flex-col gap-1 shrink-0 overflow-y-auto max-h-[36vh]">
+            <nav class="px-3 py-2 flex flex-col gap-1 shrink-0 overflow-y-auto md:max-h-[36vh]">
                 <button v-for="tab in tabs" :key="tab.view" @click="switchView(tab.view)"
                         class="flex items-center px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wide premium-transition"
                         :class="[
@@ -520,9 +520,9 @@ main {
                         </svg>
                     </button>
 
-                    <div v-if="settings.showMenu"
-                         class="absolute right-0 mt-2 w-60 bg-white/95 backdrop-blur-xl border border-brand-softGray rounded-2xl shadow-premium py-2 z-[80]">
-                        
+         <div v-if="settings.showMenu"
+     @click.stop
+     class="absolute right-0 mt-2 w-60 bg-white/95 backdrop-blur-xl border border-brand-softGray rounded-2xl shadow-premium py-2 z-[120]">        
                         <button @click.stop="showMobileMenu = true; settings.showMenu = false"
                                 class="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-softGray flex items-center gap-2.5 font-bold transition">
                             打开主面板
@@ -1652,7 +1652,7 @@ main {
 
         </main>
 <!-- 手机端底部导航 -->
-<nav v-if="isMobileCompact && !showMobileMenu"
+<nav v-if="isMobileCompact && !showMobileMenu && currentView !== 'chat_room'"
      class="fixed bottom-3 left-3 right-3 z-50 bg-white/85 backdrop-blur-xl border border-white/60 shadow-premium rounded-2xl px-2 py-2 flex justify-around md:hidden">
     <button @click="switchView('chat_room')" class="flex flex-col items-center gap-0.5 text-[9px] font-bold"
             :class="currentView === 'chat_room' ? 'text-brand-gold' : 'text-brand-gray'">
@@ -2054,89 +2054,48 @@ const confirmDialog = (msg) => {
                     switchView('editor');
                 };
 
-                const saveData = () => {
-
-let saveTimer = null;
+                let saveTimer = null;
 
 const scheduleSave = () => {
     if (saveTimer) clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
         saveData();
-    }, 300);
+    }, 800);
 };
 
-                    localStorage.setItem('miao_chars', JSON.stringify(characters.value));
-                    if (currentCharacter.value) {
-                        localStorage.setItem(`miao_chat_${currentCharacter.value.uuid}`, JSON.stringify(chatHistory.value));
-                    }
-                    localStorage.setItem('miao_user_profiles', JSON.stringify(userProfiles.value));
-                    localStorage.setItem('miao_active_persona_idx', activePersonaIndex.value);
-                    localStorage.setItem('miao_settings', JSON.stringify(settings));
-                    localStorage.setItem('miao_models_list', JSON.stringify(modelsList.value));
-                    localStorage.setItem('miao_custom_chat_bg', customChatBg.value);
-                    localStorage.setItem('miao_image_settings', JSON.stringify(imageSettings));
-                    localStorage.setItem('miao_sidebar_collapsed', sidebarCollapsed.value ? '1' : '0');
-                };
+const saveData = () => {
+    try {
+        localStorage.setItem('miao_chars', JSON.stringify(characters.value));
 
-                const loadData = () => {
-                    try {
-                        const c = localStorage.getItem('miao_chars');
-                        if (c) characters.value = JSON.parse(c);
-                        
-                        const u = localStorage.getItem('miao_user_profiles');
-                        if (u) userProfiles.value = JSON.parse(u);
-                        
-                        const pIdx = localStorage.getItem('miao_active_persona_idx');
-                        if (pIdx !== null) activePersonaIndex.value = parseInt(pIdx);
-                        
-                        const s = localStorage.getItem('miao_settings');
-                        if (s) Object.assign(settings, JSON.parse(s));
+        if (currentCharacter.value) {
+            localStorage.setItem(`miao_chat_${currentCharacter.value.uuid}`, JSON.stringify(chatHistory.value));
+        }
 
-                        const mList = localStorage.getItem('miao_models_list');
-                        if (mList) modelsList.value = JSON.parse(mList);
+        localStorage.setItem('miao_user_profiles', JSON.stringify(userProfiles.value));
+        localStorage.setItem('miao_active_persona_idx', String(activePersonaIndex.value));
+        localStorage.setItem('miao_settings', JSON.stringify(settings));
+        localStorage.setItem('miao_models_list', JSON.stringify(modelsList.value));
+        localStorage.setItem('miao_custom_chat_bg', customChatBg.value || '');
+        localStorage.setItem('miao_image_settings', JSON.stringify(imageSettings));
+        localStorage.setItem('miao_sidebar_collapsed', sidebarCollapsed.value ? '1' : '0');
 
-                        const bg = localStorage.getItem('miao_custom_chat_bg');
-                        if (bg) customChatBg.value = bg;
-
-                        const imgS = localStorage.getItem('miao_image_settings');
-                        if (imgS) Object.assign(imageSettings, JSON.parse(imgS));
-
-                        if (!localStorage.getItem('miao_image_settings_migrated_openai_default')) {
-                            imageSettings.apiUrl = 'https://api.openai.com/v1';
-                            localStorage.setItem('miao_image_settings_migrated_openai_default', '1');
-                        }
-
-                        const sc = localStorage.getItem('miao_sidebar_collapsed');
-                        if (sc === '1') sidebarCollapsed.value = true;
-                        
-                        if (characters.value.length > 0) {
-                            currentCharacterIndex.value = 0;
-                            const char = characters.value[0];
-                            const savedChat = localStorage.getItem(`miao_chat_${char.uuid}`);
-                            if (savedChat) {
-                                chatHistory.value = JSON.parse(savedChat);
-                            } else if (char.first_mes) {
-                                chatHistory.value = [{
-                                    role: 'assistant',
-                                    name: char.name,
-                                    content: char.first_mes,
-                                    id: generateUUID(),
-                                    swipes: [char.first_mes],
-                                    currentSwipeIndex: 0
-                                }];
-                            }
-                        }
-                    } catch (e) {
-                        showToast('本地数据读取异常，已使用默认配置。', 'error');
-                    }
-                };
+        localStorage.setItem('miao_editor_draft', JSON.stringify({
+            id: editingCharacter.id,
+            data: editingCharacter.data,
+            editorTab: editorTab.value
+        }));
+    } catch (e) {
+        console.error('保存失败：', e);
+        showToast('本地保存失败，可能是浏览器存储空间不足。请导出角色卡备份。', 'error');
+    }
+};
 
 watch(chatHistory, () => scheduleSave(), { deep: true });
 watch(characters, () => scheduleSave(), { deep: true });
 watch(userProfiles, () => scheduleSave(), { deep: true });
 watch(settings, () => scheduleSave(), { deep: true });
 watch(imageSettings, () => scheduleSave(), { deep: true });
-watch(editingCharacter, () => scheduleSave(), { deep: true });
+watch(() => editingCharacter.data, () => scheduleSave(), { deep: true });
 watch(activePersonaIndex, () => scheduleSave());
 watch(sidebarCollapsed, () => scheduleSave());
 watch(customChatBg, () => scheduleSave());
