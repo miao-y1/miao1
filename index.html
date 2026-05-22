@@ -737,8 +737,20 @@ body {
                     <div class="mt-auto p-2.5 bg-white/50 border border-brand-softGray rounded-2xl mb-1">
                         <p class="text-[10px] text-brand-ink font-bold leading-relaxed mb-2">流光卡片导出</p>
                         <div class="flex gap-2">
-                            <button @click="exportCharacter(currentCharacterIndex)" class="flex-1 py-1.5 bg-brand-ink text-white rounded-lg text-[9px] font-black">JSON</button>
-                            <button @click="exportPNG" class="flex-1 py-1.5 bg-brand-gold text-white rounded-lg text-[9px] font-black">PNG</button>
+                            <button @click="character_book: char.worldInfo
+    ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
+    : undefined,
+
+regex_scripts: char.regexScripts
+    ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
+    : [],(currentCharacterIndex)" class="flex-1 py-1.5 bg-brand-ink text-white rounded-lg text-[9px] font-black">JSON</button>
+                            <button @click="character_book: char.worldInfo
+    ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
+    : undefined,
+
+regex_scripts: char.regexScripts
+    ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
+    : []," class="flex-1 py-1.5 bg-brand-gold text-white rounded-lg text-[9px] font-black">PNG</button>
                         </div>
                     </div>
                 </template>
@@ -1588,7 +1600,7 @@ body {
                                     <span class="text-[9px] bg-brand-gold text-brand-ink font-bold px-2 py-0.5 rounded-full">{{ editingCharacter.data.worldInfo.length }} 条</span>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button @click="editingCharacter.data.worldInfo.unshift({keys:[], content:'', comment:'', constant:false, selective:true, position:1, order:0, probability:100})" class="px-4 py-1.5 bg-brand-ink text-white text-xs font-bold rounded-lg">+ 新增</button>
+                                     <button @click="editingCharacter.data.worldInfo.unshift({keys:[], keyInput:'', content:'', comment:'', enabled:true, constant:false, selective:true, position:1, order:0, probability:100, useProbability:true, depth:0, scanDepth:3, matchWholeWords:false, caseSensitive:false, useRegex:false, excludeRecursion:false, preventRecursion:false, delayUntilRecursion:false, group:'', contextPercent:100, budgetCap:0, overflowAlert:false})"class="px-4 py-1.5 bg-brand-ink text-white text-xs font-bold rounded-lg">+ 新增</button>
                                     <button @click="saveCharacter" class="px-4 py-1.5 bg-brand-gold text-brand-ink text-xs font-black rounded-lg">保存</button>
                                 </div>
                             </div>
@@ -1617,13 +1629,16 @@ body {
                                         <textarea v-model="wi.content" class="w-full bg-white border border-brand-softGray rounded-xl p-3 text-xs font-mono min-h-[100px] outline-none resize-y focus:border-brand-gold"></textarea>
                                     </div>
                                     
-                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px] font-semibold text-brand-gray">
-                                        <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.constant" class="w-3.5 h-3.5 accent-brand-gold"> 常驻</label>
-                                        <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.selective" class="w-3.5 h-3.5 accent-brand-gold"> 触发</label>
-                                        <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.matchWholeWords" class="w-3.5 h-3.5 accent-brand-gold"> 全词</label>
-                                        <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.caseSensitive" class="w-3.5 h-3.5 accent-brand-gold"> 大小写</label>
-                                    </div>
-                                    
+                                             <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px] font-semibold text-brand-gray">
+    <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.enabled" class="w-3.5 h-3.5 accent-brand-gold"> 启用</label>
+    <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.constant" class="w-3.5 h-3.5 accent-brand-gold"> 常驻</label>
+    <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.selective" class="w-3.5 h-3.5 accent-brand-gold"> 触发</label>
+    <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.useRegex" class="w-3.5 h-3.5 accent-brand-gold"> 正则</label>
+    <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.matchWholeWords" class="w-3.5 h-3.5 accent-brand-gold"> 全词</label>
+    <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.caseSensitive" class="w-3.5 h-3.5 accent-brand-gold"> 大小写</label>
+    <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.excludeRecursion" class="w-3.5 h-3.5 accent-brand-gold"> 不递归</label>
+    <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="wi.preventRecursion" class="w-3.5 h-3.5 accent-brand-gold"> 阻止递归</label>
+</div>                           
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-[10px] font-semibold text-brand-gray mt-3 pt-3 border-t border-brand-softGray/50">
                                         <div class="flex flex-col gap-1">
                                             <span>位置:</span>
@@ -1638,6 +1653,14 @@ body {
                                         <div class="flex flex-col gap-1"><span>Order:</span><input type="number" v-model.number="wi.order" class="bg-white border border-brand-softGray rounded-lg px-2 py-1 outline-none"></div>
                                         <div class="flex flex-col gap-1"><span>概率:</span><input type="number" v-model.number="wi.probability" class="bg-white border border-brand-softGray rounded-lg px-2 py-1 outline-none"></div>
                                         <div class="flex flex-col gap-1" v-show="wi.position == 4"><span>深度:</span><input type="number" v-model.number="wi.depth" class="bg-white border border-brand-softGray rounded-lg px-2 py-1 outline-none"></div>
+<div class="flex flex-col gap-1">
+    <span>扫描:</span>
+    <input type="number" v-model.number="wi.scanDepth" class="bg-white border border-brand-softGray rounded-lg px-2 py-1 outline-none">
+</div>
+<div class="flex flex-col gap-1">
+    <span>分组:</span>
+    <input type="text" v-model="wi.group" class="bg-white border border-brand-softGray rounded-lg px-2 py-1 outline-none">
+</div>
                                     </div>
                                 </div>
                             </div>
@@ -1651,7 +1674,7 @@ body {
                                     <span class="text-[9px] bg-brand-gold text-brand-ink font-bold px-2 py-0.5 rounded-full">{{ editingCharacter.data.regexScripts.length }} 条</span>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button @click="editingCharacter.data.regexScripts.unshift({scriptName:'新高亮脚本', findRegex:'', replaceString:'', placement:[2], markdownOnly:false, promptOnly:false, runOnEdit:true})" class="px-4 py-1.5 bg-brand-ink text-white text-xs font-bold rounded-lg">+ 新增</button>
+                                    <button @click="editingCharacter.data.regexScripts.unshift({scriptName:'新脚本', findRegex:'', replaceString:'', placement:[2], markdownOnly:false, promptOnly:false, runOnEdit:true, substituteRegex:false, minDepth:null, maxDepth:null, disabled:false})" class="px-4 py-1.5 bg-brand-ink text-white text-xs font-bold rounded-lg">+ 新增</button>
                                     <button @click="saveCharacter" class="px-4 py-1.5 bg-brand-gold text-brand-ink text-xs font-black rounded-lg">保存</button>
                                 </div>
                             </div>
@@ -1683,6 +1706,13 @@ body {
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px] font-semibold text-brand-gray pt-2 border-t border-brand-softGray/50">
                                         <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" :checked="rx.placement && rx.placement.includes(1)" @change="e => e.target.checked ? rx.placement.push(1) : rx.placement = rx.placement.filter(p=>p!==1)" class="w-3.5 h-3.5 accent-brand-gold"> User</label>
                                         <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" :checked="rx.placement && rx.placement.includes(2)" @change="e => e.target.checked ? rx.placement.push(2) : rx.placement = rx.placement.filter(p=>p!==2)" class="w-3.5 h-3.5 accent-brand-gold"> AI</label>
+<label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink">
+    <input type="checkbox"
+           :checked="rx.placement && rx.placement.includes(3)"
+           @change="e => e.target.checked ? rx.placement.push(3) : rx.placement = rx.placement.filter(p=>p!==3)"
+           class="w-3.5 h-3.5 accent-brand-gold">
+    世界书
+</label>
                                         <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="rx.markdownOnly" class="w-3.5 h-3.5 accent-brand-gold"> Markdown</label>
                                         <label class="flex items-center gap-1.5 cursor-pointer hover:text-brand-ink"><input type="checkbox" v-model="rx.promptOnly" class="w-3.5 h-3.5 accent-brand-gold"> Prompt</label>
                                     </div>
@@ -2149,42 +2179,124 @@ body {
             return null;
         };
 
-        const normWI = (e) => {
-            if (!e) return {};
-            let rk = Array.isArray(e.keys) ? e.keys : (Array.isArray(e.key) ? e.key : []);
-            let keys = rk.map(k => String(k).trim()).filter(Boolean);
-            return {
-                keys: keys,
-                comment: e.comment || e.name || keys[0] || "未命名条目",
-                content: e.content || "",
-                constant: e.constant === true || e.constant === "true",
-                selective: e.selective !== false,
-                position: e.position != null ? e.position : 1,
-                order: e.order != null ? Number(e.order) : 0,
-                probability: e.probability != null ? Number(e.probability) : 100,
-                depth: e.depth != null ? Number(e.depth) : 0,
-                excludeRecursion: e.excludeRecursion === true,
-                preventRecursion: e.preventRecursion === true,
-                delayUntilRecursion: e.delayUntilRecursion === true,
-                matchWholeWords: e.matchWholeWords === true,
-                caseSensitive: e.caseSensitive === true
-            };
+const normWI = (e) => {
+    if (!e) return {};
+
+    const rawKeys = Array.isArray(e.keys)
+        ? e.keys
+        : (Array.isArray(e.key) ? e.key : []);
+
+    const keys = rawKeys
+        .map(k => String(k).trim())
+        .filter(Boolean);
+
+    const disabled = e.disabled === true || e.disable === true;
+
+    const normPosition = (p) => {
+        const map = {
+            before_char: 0,
+            before_character: 0,
+            character_top: 0,
+            after_char: 1,
+            after_character: 1,
+            character_bottom: 1,
+            at_depth: 4,
+            system_top: 'system_top',
+            global_note: 'global_note',
+            author_note: 'global_note',
+            user_top: 'user_top',
+            assistant_top: 'assistant_top'
         };
 
-        const normRX = (s) => {
-            if (!s) return {};
-            return {
-                scriptName: s.scriptName || s.name || "未命名脚本",
-                findRegex: s.findRegex || s.regex || "",
-                replaceString: s.replaceString || s.replacement || "",
-                placement: Array.isArray(s.placement) ? s.placement : [2],
-                markdownOnly: s.markdownOnly === true,
-                promptOnly: s.promptOnly === true,
-                runOnEdit: s.runOnEdit !== false,
-                disabled: s.disabled === true
-            };
-        };
+        if (typeof p === 'string') {
+            const key = p.trim().toLowerCase().replace(/\s+/g, '_');
+            if (map[key] !== undefined) return map[key];
+        }
 
+        const n = Number(p);
+        if (n === 0 || n === 1 || n === 4) return n;
+        return 1;
+    };
+
+    return {
+        keys,
+        keyInput: typeof e.keyInput === 'string'
+            ? e.keyInput
+            : keys.join(', '),
+
+        name: e.name || '',
+        comment: e.comment || e.name || keys[0] || '未命名条目',
+        content: e.content || '',
+
+        enabled: e.enabled !== undefined ? e.enabled !== false : !disabled,
+
+        constant: e.constant === true || e.constant === 'true',
+        selective: e.selective !== false,
+
+        position: normPosition(e.position),
+        order: e.order != null ? Number(e.order) : 0,
+        probability: e.probability != null ? Number(e.probability) : 100,
+        useProbability: e.useProbability !== false && e.use_probability !== false,
+
+        depth: e.depth != null ? Number(e.depth) : 0,
+        scanDepth: e.scanDepth != null
+            ? Number(e.scanDepth)
+            : (e.scan_depth != null ? Number(e.scan_depth) : 3),
+
+        excludeRecursion: e.excludeRecursion === true || e.exclude_recursion === true,
+        preventRecursion: e.preventRecursion === true || e.prevent_recursion === true,
+        delayUntilRecursion: e.delayUntilRecursion === true || e.delay_until_recursion === true,
+
+        matchWholeWords: e.matchWholeWords === true || e.match_whole_words === true,
+        caseSensitive: e.caseSensitive === true || e.case_sensitive === true,
+        useRegex: e.useRegex === true || e.use_regex === true,
+
+        group: e.group || '',
+        contextPercent: e.contextPercent != null
+            ? Number(e.contextPercent)
+            : (e.context_percent != null ? Number(e.context_percent) : 100),
+        budgetCap: e.budgetCap != null
+            ? Number(e.budgetCap)
+            : (e.budget_cap != null ? Number(e.budget_cap) : 0),
+        overflowAlert: e.overflowAlert === true || e.overflow_alert === true
+    };
+};
+
+       const normRX = (s) => {
+    if (!s) return {};
+
+    let rawFind = s.findRegex ?? s.find_regex ?? s.regex ?? '';
+    const flags = s.flags ?? s.regexFlags;
+
+    if (flags && rawFind && String(rawFind).charAt(0) !== '/') {
+        rawFind = `/${rawFind}/${flags}`;
+    }
+
+    const placement = Array.isArray(s.placement)
+        ? s.placement.map(Number).filter(v => v === 1 || v === 2 || v === 3)
+        : [2];
+
+    const disabled = s.disabled !== undefined
+        ? s.disabled === true
+        : (s.enabled !== undefined ? s.enabled === false : false);
+
+    return {
+        scriptName: s.scriptName || s.script_name || s.name || '未命名脚本',
+        findRegex: rawFind || '',
+        replaceString: s.replaceString ?? s.replace_string ?? s.replacement ?? '',
+        placement: placement.length ? placement : [2],
+
+        markdownOnly: s.markdownOnly === true || s.markdown_only === true,
+        promptOnly: s.promptOnly === true || s.prompt_only === true,
+        runOnEdit: s.runOnEdit !== false && s.run_on_edit !== false,
+        substituteRegex: s.substituteRegex === true || s.substitute_regex === true,
+
+        minDepth: s.minDepth ?? s.min_depth ?? null,
+        maxDepth: s.maxDepth ?? s.max_depth ?? null,
+
+        disabled
+    };
+};
         const normUI = (u) => {
             if (!u) return {};
             return {
@@ -2545,12 +2657,121 @@ watch(customChatBg, () => scheduleSave());
                     return Math.floor(text.length * 0.65);
                 });
 
-                const getActiveLorebookCount = () => {
-                    if (!currentCharacter.value || !currentCharacter.value.worldInfo) return 0;
-                    const recentText = chatHistory.value.slice(-3).map(m => getDisplayContent(m)).join(' ');
-                    return currentCharacter.value.worldInfo.filter(wi => wi.keys && wi.keys.some(k => recentText.includes(k))).length;
-                };
+                const matchWorldInfoKey = (wi, text) => {
+    if (!wi || wi.enabled === false) return false;
+    if (!wi.keys || !wi.keys.length) return false;
 
+    const source = wi.caseSensitive ? String(text || '') : String(text || '').toLowerCase();
+
+    return wi.keys.some(rawKey => {
+        if (!rawKey) return false;
+
+        const key = wi.caseSensitive ? String(rawKey) : String(rawKey).toLowerCase();
+
+        if (wi.useRegex) {
+            try {
+                const re = new RegExp(String(rawKey), wi.caseSensitive ? '' : 'i');
+                return re.test(String(text || ''));
+            } catch (e) {
+                return false;
+            }
+        }
+
+        if (wi.matchWholeWords) {
+            const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const re = new RegExp(`(^|[^\\w\\u4e00-\\u9fa5])${escaped}($|[^\\w\\u4e00-\\u9fa5])`, wi.caseSensitive ? '' : 'i');
+            return re.test(String(text || ''));
+        }
+
+        return source.includes(key);
+    });
+};
+
+const shouldActivateWorldInfo = (wi, scanText) => {
+    if (!wi || wi.enabled === false) return false;
+
+    if (wi.constant) return true;
+
+    if (wi.selective === false) return false;
+
+    if (!matchWorldInfoKey(wi, scanText)) return false;
+
+    if (wi.useProbability !== false) {
+        const p = Number(wi.probability ?? 100);
+        if (p < 100 && Math.random() * 100 > p) return false;
+    }
+
+    return true;
+};
+
+const buildWorldInfoInjection = () => {
+    if (!currentCharacter.value || !Array.isArray(currentCharacter.value.worldInfo)) {
+        return {
+            systemTop: '',
+            beforeChar: '',
+            afterChar: '',
+            globalNote: '',
+            atDepth: '',
+            userTop: '',
+            assistantTop: '',
+            activeCount: 0
+        };
+    }
+
+    const recentText = chatHistory.value
+        .slice(-8)
+        .map(m => getDisplayContent(m))
+        .join('\n');
+
+    const active = currentCharacter.value.worldInfo
+        .map(normWI)
+        .filter(wi => shouldActivateWorldInfo(wi, recentText))
+        .sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+
+    const bucket = {
+        systemTop: [],
+        beforeChar: [],
+        afterChar: [],
+        globalNote: [],
+        atDepth: [],
+        userTop: [],
+        assistantTop: []
+    };
+
+    active.forEach(wi => {
+        const title = wi.comment || wi.name || (wi.keys && wi.keys[0]) || '世界书条目';
+
+        // 世界书内容可用 placement 3 的正则预处理
+        const content = applyRegexScripts(wi.content || '', 3, 'prompt').trim();
+        if (!content) return;
+
+        const block = `【世界书：${title}】\n${content}`;
+
+        if (wi.position === 'system_top') bucket.systemTop.push(block);
+        else if (wi.position === 0) bucket.beforeChar.push(block);
+        else if (wi.position === 1) bucket.afterChar.push(block);
+        else if (wi.position === 4) bucket.atDepth.push(block);
+        else if (wi.position === 'global_note') bucket.globalNote.push(block);
+        else if (wi.position === 'user_top') bucket.userTop.push(block);
+        else if (wi.position === 'assistant_top') bucket.assistantTop.push(block);
+        else bucket.afterChar.push(block);
+    });
+
+    return {
+        systemTop: bucket.systemTop.join('\n\n'),
+        beforeChar: bucket.beforeChar.join('\n\n'),
+        afterChar: bucket.afterChar.join('\n\n'),
+        globalNote: bucket.globalNote.join('\n\n'),
+        atDepth: bucket.atDepth.join('\n\n'),
+        userTop: bucket.userTop.join('\n\n'),
+        assistantTop: bucket.assistantTop.join('\n\n'),
+        activeCount: active.length
+    };
+};
+
+const getActiveLorebookCount = () => {
+    return buildWorldInfoInjection().activeCount;
+};
                 const closeCharacterEditor = () => showCharacterEditor.value = false;
 
                 const createNewCharacter = () => {
@@ -2643,7 +2864,13 @@ watch(customChatBg, () => scheduleSave());
                     });
                 };
 
-                const exportCharacter = (index) => {
+                const character_book: character_book: char.worldInfo
+    ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
+    : undefined,
+
+regex_scripts: char.regexScripts
+    ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
+    : [], = (index) => {
                     const char = characters.value[index];
                     if (!char) return;
                     const cardData = {
@@ -2674,7 +2901,13 @@ watch(customChatBg, () => scheduleSave());
                     showToast('角色 JSON 已导出。');
                 };
 
-                const exportPNG = () => {
+                const character_book: char.worldInfo
+    ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
+    : undefined,
+
+regex_scripts: char.regexScripts
+    ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
+    : [], = () => {
                     const char = currentCharacter.value;
                     if (!char) return;
                     showToast("正在导出 PNG 角色卡...", "info");
@@ -2793,7 +3026,13 @@ watch(customChatBg, () => scheduleSave());
                     else if (Array.isArray(cd.world_info)) entries = cd.world_info;
                     if (entries.length) nc.worldInfo = entries.map(normWI);
 
-                    if (cd.regex_scripts && Array.isArray(cd.regex_scripts)) nc.regexScripts = cd.regex_scripts.map(normRX);
+                    if (cd.regex_scripts && Array.isArray(cd.regex_scripts)) {
+    nc.regexScripts = cd.regex_scripts.map(normRX);
+} else if (cd.extensions && Array.isArray(cd.extensions.regex_scripts)) {
+    nc.regexScripts = cd.extensions.regex_scripts.map(normRX);
+} else if (Array.isArray(cd.regexScripts)) {
+    nc.regexScripts = cd.regexScripts.map(normRX);
+}
 
                     if (cd.extensions) {
                         if (cd.extensions.statusVars) nc.statusVars = cd.extensions.statusVars;
@@ -2906,6 +3145,58 @@ watch(customChatBg, () => scheduleSave());
                     return `<div class="py-code-block"><code>${escaped}</code></div>`;
                 };
 
+const parseRegexScript = (raw) => {
+    if (!raw) return null;
+
+    try {
+        const match = String(raw).match(/^\/([\s\S]*)\/([gimsuy]*)$/);
+        if (match) return new RegExp(match[1], match[2]);
+
+        return new RegExp(String(raw), 'g');
+    } catch (e) {
+        console.warn('正则解析失败：', raw, e);
+        return null;
+    }
+};
+
+const applyRegexScripts = (text, roleNumber, mode = 'display') => {
+    if (!text || !currentCharacter.value || !Array.isArray(currentCharacter.value.regexScripts)) {
+        return text || '';
+    }
+
+    let output = String(text);
+    const maxLayers = settings.maxRenderLayers || 3;
+
+    for (let layer = 0; layer < maxLayers; layer++) {
+        let changed = false;
+
+        currentCharacter.value.regexScripts.forEach(script => {
+            if (!script || script.disabled) return;
+            if (!script.findRegex || !script.replaceString) return;
+
+            const placements = Array.isArray(script.placement) ? script.placement.map(Number) : [2];
+            if (!placements.includes(roleNumber)) return;
+
+            // 展示模式：跳过仅提示词正则
+            if (mode === 'display' && script.promptOnly) return;
+
+            // 提示词模式：跳过仅渲染正则
+            if (mode === 'prompt' && script.markdownOnly) return;
+
+            const re = parseRegexScript(script.findRegex);
+            if (!re) return;
+
+            const old = output;
+            output = output.replace(re, script.replaceString);
+            if (old !== output) changed = true;
+        });
+
+        if (!changed) break;
+    }
+
+    return output;
+};
+
                 const renderCustomMarkdown = (text, role) => {
                     if (!text) return '';
                     let processed = text;
@@ -2927,24 +3218,8 @@ watch(customChatBg, () => scheduleSave());
                         }
                     }
 
-                    const maxLayers = settings.maxRenderLayers || 3;
-                    if (currentCharacter.value && currentCharacter.value.regexScripts) {
-                        for (let layer = 0; layer < maxLayers; layer++) {
-                            let changed = false;
-                            currentCharacter.value.regexScripts.forEach(script => {
-                                if (script.findRegex && script.replaceString && !script.disabled) {
-                                    try {
-                                        const match = script.findRegex.match(/^\/(.*?)\/([gimyus]*)$/);
-                                        const re = match ? new RegExp(match[1], match[2]) : new RegExp(script.findRegex, 'g');
-                                        const oldText = parsedText;
-                                        parsedText = parsedText.replace(re, script.replaceString);
-                                        if (parsedText !== oldText) changed = true;
-                                    } catch (err) {}
-                                }
-                            });
-                            if (!changed) break;
-                        }
-                    }
+                    const roleNumber = role === 'user' ? 1 : 2;
+parsedText = applyRegexScripts(parsedText, roleNumber, 'display');
 
                     return DOMPurify.sanitize(marked.parse(parsedText));
                 };
@@ -3004,24 +3279,46 @@ watch(customChatBg, () => scheduleSave());
                         statusStr = `[当前角色状态：${sVars}。如剧情需要，可用[Affection+5]或[Fear-2]格式更新。]`;
                     }
 
-                    let sysPrompt = `你现在扮演：${currentCharacter.value.name}
+                    const wiPack = buildWorldInfoInjection();
+
+let sysPrompt = `${wiPack.systemTop ? wiPack.systemTop + '\n\n' : ''}${wiPack.beforeChar ? wiPack.beforeChar + '\n\n' : ''}你现在扮演：${currentCharacter.value.name}
 ${currentCharacter.value.personality || ''}
 
-场景：
+${wiPack.afterChar ? wiPack.afterChar + '\n\n' : ''}场景：
 ${currentCharacter.value.scenario || ''}
 
 当前与角色对话的主角：
 姓名：${activePersona.value.name}
 ${activePersona.value.description || ''}
 
-${statusStr}`;
-
+${wiPack.globalNote ? '【全局备注】\n' + wiPack.globalNote + '\n\n' : ''}${wiPack.atDepth ? '【深度注入】\n' + wiPack.atDepth + '\n\n' : ''}${statusStr}`;
                     let messages = [{ role: 'system', content: sysPrompt }];
                     const contextHistory = isRegenerate ? chatHistory.value.slice(0, msgIndex) : chatHistory.value;
-                    messages = messages.concat(contextHistory.map(m => ({
-                        role: m.role,
-                        content: parseCot(getDisplayContent(m)).main
-                    })));
+                    messages = messages.concat(contextHistory.map(m => {
+if (wiPack.userTop && messages.length > 1) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+        if (messages[i].role === 'user') {
+            messages[i].content = `${wiPack.userTop}\n\n${messages[i].content}`;
+            break;
+        }
+    }
+}
+
+if (wiPack.assistantTop) {
+    messages.push({
+        role: 'system',
+        content: `【AI响应前置约束】\n${wiPack.assistantTop}`
+    });
+}
+    const roleNumber = m.role === 'user' ? 1 : 2;
+    let content = parseCot(getDisplayContent(m)).main;
+    content = applyRegexScripts(content, roleNumber, 'prompt');
+
+    return {
+        role: m.role,
+        content
+    };
+}));
 
                     let targetMsg;
                     if (isRegenerate) {
@@ -4078,8 +4375,14 @@ onBeforeUnmount(() => {
                     getActiveLorebookCount,
 
                     deleteCharacter,
-                    exportCharacter,
-                    exportPNG,
+                    ,
+                   character_book: char.worldInfo
+    ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
+    : undefined,
+
+regex_scripts: char.regexScripts
+    ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
+    : [], ,
                     importCharacterFile,
 
                     createNewPersona,
