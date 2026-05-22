@@ -119,6 +119,29 @@
         .markdown-body p:last-child { margin-bottom: 0; }
         .markdown-body em { color: #8F8474; font-style: italic; }
         .markdown-body strong { font-weight: 600; color: #1A1A1A; }
+        .markdown-body img {
+    display: block;
+    max-width: 100%;
+    max-height: 520px;
+    object-fit: contain;
+    border-radius: 18px;
+    margin: 12px 0;
+    border: 1px solid rgba(197, 168, 128, 0.22);
+    box-shadow: 0 10px 28px -18px rgba(42, 44, 46, 0.35);
+    background: #F5F1E8;
+}
+
+.markdown-body .miao-image-loading {
+    margin: 12px 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(197, 168, 128, 0.10);
+    border: 1px solid rgba(197, 168, 128, 0.22);
+    color: #8F7A5C;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .progress-bar-fill { transition: width 0.35s ease-out; }
@@ -2027,6 +2050,11 @@ body {
                                     <span class="text-xs font-bold text-brand-ink">展示思维链</span>
                                     <input type="checkbox" v-model="settings.showReasoning" class="w-4 h-4 accent-brand-gold cursor-pointer">
                                 </div>
+
+<div class="flex items-center justify-between bg-brand-beige/30 rounded-xl p-3 border border-brand-softGray">
+    <span class="text-xs font-bold text-brand-ink">回复自动插图</span>
+    <input type="checkbox" v-model="settings.enableReplyImage" class="w-4 h-4 accent-brand-gold cursor-pointer">
+</div>
                             </div>
                         </div>
 
@@ -2440,20 +2468,20 @@ const updateMobileState = () => {
                 ];
 
                 const settings = reactive({
-                    apiUrl: 'https://api.openai.com/v1',
-                    apiKey: '',
-                    model: 'gpt-4o-mini',
-                    temperature: 1.0,
-                    stream: true,
-                    showReasoning: true,
-                    showUITemplates: false,
-                    maxRenderLayers: 3,
-                    dialogueFontSize: '15px',
-                    chatBackground: '',
-                    showStatusPanel: false,
-                    showMenu: false
-                });
-
+    apiUrl: 'https://api.openai.com/v1',
+    apiKey: '',
+    model: 'gpt-4o-mini',
+    temperature: 1.0,
+    stream: true,
+    showReasoning: true,
+    showUITemplates: false,
+    maxRenderLayers: 3,
+    dialogueFontSize: '15px',
+    chatBackground: '',
+    showStatusPanel: false,
+    showMenu: false,
+    enableReplyImage: true
+});
                 const modelsList = ref([]);
                 const toasts = ref([]);
 
@@ -3376,6 +3404,8 @@ const applyRegexScripts = (text, roleNumber, mode = 'display', depth = 0) => {
                     processed = processed.replace(/\x60\x60\x60python\s*([\s\S]*?)\x60\x60\x60/gi, (match, code) => highlightPython(code));
                     let parsedText = parseCot(processed).main;
 
+                    parsedText = parsedText.replace(/<miao-image(?:\s+[^>]*)?>[\s\S]*?<\/miao-image>/gi, '<div class="miao-image-loading">插图生成队列已接收...</div>');
+
                     if (role === 'assistant' && currentCharacter.value && currentCharacter.value.statusVars) {
                         const matches = [...parsedText.matchAll(/\[([a-zA-Z_]+)([+-]\d+)\]/g)];
                         for (const match of matches) {
@@ -3485,6 +3515,26 @@ const charPostPromptForAI = applyRegexScripts(
     'prompt'
 );
 
+const replyImageProtocol = settings.enableReplyImage ? `
+【插图生成协议】
+当当前回复中存在明确视觉价值的场景、人物姿态、服装、环境或关键画面时，可以在正文自然段落之后追加一段插图提示词。
+格式必须严格如下：
+<miao-image>
+英文生图提示词，包含角色外貌、服装、动作、场景、光线、镜头、姿势、面部表情、画风，不要写解释。
+特别提示：出现user或主角参与的情况(如被口、手交），禁止出现主角的人物形象(脸部，头部）！必须使用第一视角(POV）相关提示词！且要作为Character  Prompt添加，禁止出现角色卡和角色名字(包括英文和拼音），中文和{{user}}是明令禁止的，且一定要保持同一人物在上下文中的形象一致性，不要丢失人物特性(如有异色瞳特征人物），涉及人物常见特征(如发色，瞳孔颜色等）的提示词请增加权重
+</miao-image>
+限制：
+注意:始终使用逗号分隔条目.另外请保证同一角色的特征，如发色，瞳孔颜色，体态，外貌的一致性.
+注意：如为nsfw场景，生成的提示词的最开头必须带上 nsfw 标签！
+注意：必须精准提取并保留角色当前的外貌，着装状态（如衣服是否破损、脱下）、环境光影、道具位置以及相对姿势。一旦在上文改变了状态，后续生图必须绝对保持一致！
+注意：同人角色/固定外观一致性：对于特定世界观或同人角色，必须带上极其准确的专属特征组合。对常驻特征（如特定发型、异色瞳、专属装饰物等）加上最高权重 {{{Tag}}}，避免生成外形崩坏和不一致。
+- 每次回复至少插1张图。
+- 每次回复最多输出三个 miao-image 块。
+- miao-image 内只写英文提示词。
+- 不要把剧情正文写进 miao-image。
+- 如果当前回复没有明确画面价值，不要输出 miao-image。
+` : '';
+
 let sysPrompt = `${wiPack.systemTop ? wiPack.systemTop + '\n\n' : ''}${charSystemPromptForAI ? '【角色系统提示】\n' + charSystemPromptForAI + '\n\n' : ''}${wiPack.beforeChar ? wiPack.beforeChar + '\n\n' : ''}你现在扮演：${currentCharacter.value.name}
 ${charPersonalityForAI}
 
@@ -3496,6 +3546,8 @@ ${charScenarioForAI}
 ${personaDescForAI}
 
 ${wiPack.globalNote ? '【全局备注】\n' + wiPack.globalNote + '\n\n' : ''}${wiPack.atDepth ? '【深度注入】\n' + wiPack.atDepth + '\n\n' : ''}${statusStr}
+
+${replyImageProtocol}
 
 ${charPostPromptForAI ? '【后置指令】\n' + charPostPromptForAI : ''}`;
 
@@ -3618,15 +3670,17 @@ if (wiPack.assistantTop) {
                         isThinking.value = false;
                         targetMsg.isReasoningOpen = false;
 
-                        if (!targetMsg.swipes) targetMsg.swipes = [];
-                        if (newSwipeContent && !targetMsg.swipes.includes(newSwipeContent)) {
-                            targetMsg.swipes.push(newSwipeContent);
-                            targetMsg.currentSwipeIndex = targetMsg.swipes.length - 1;
-                        }
+if (!targetMsg.swipes) targetMsg.swipes = [];
+if (newSwipeContent && !targetMsg.swipes.includes(newSwipeContent)) {
+    targetMsg.swipes.push(newSwipeContent);
+    targetMsg.currentSwipeIndex = targetMsg.swipes.length - 1;
+}
 
-                        abortController.value = null;
-                        syncUITemplateVars();
-                        saveData();
+await processAssistantImageBlocks(targetMsg);
+
+abortController.value = null;
+syncUITemplateVars();
+saveData();
                     }
                 };
 
@@ -4173,6 +4227,138 @@ const normalizeImageUrl = (url) => {
     }
 
     return finalUrl;
+};
+
+const buildMiaoImagePayload = (promptText) => {
+    return `提示词:${promptText}
+画师串:${imageSettings.artist || ''}
+尺寸:${imageSettings.size || '竖图'}
+提示词引导值:${imageSettings.cfg ?? 7}
+缩放引导值:${imageSettings.scale ?? 0}
+负面提示词:${imageSettings.negativePrompt || ''}
+采样器:${imageSettings.sampler || 'k_dpmpp_2m_sde'}`;
+};
+
+const requestMiaoImageFromPrompt = async (promptText) => {
+    if (!imageSettings.apiKey) {
+        throw new Error('未配置生图 API Key');
+    }
+
+    const payload = buildMiaoImagePayload(promptText);
+
+    const res = await fetch(`${imageSettings.apiUrl.replace(/\/$/, '')}/chat/completions`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${imageSettings.apiKey}`
+        },
+        body: JSON.stringify({
+            model: imageSettings.model,
+            messages: [
+                {
+                    role: 'user',
+                    content: payload
+                }
+            ],
+            stream: false
+        })
+    });
+
+    if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        throw new Error(`生图接口 HTTP ${res.status}${errText ? '：' + errText.slice(0, 120) : ''}`);
+    }
+
+    const resultData = await res.json();
+
+    const content =
+        resultData.choices?.[0]?.message?.content ||
+        resultData.data?.[0]?.url ||
+        resultData.data?.[0]?.b64_json ||
+        resultData.url ||
+        resultData.image ||
+        resultData.output ||
+        resultData.result ||
+        '';
+
+    const extracted = extractImageFromResponse(content);
+    const finalImg = normalizeImageUrl(extracted);
+
+    if (!finalImg || !(finalImg.startsWith('http') || finalImg.startsWith('data:image'))) {
+        throw new Error('生图返回中未提取到可用图片地址');
+    }
+
+    return finalImg;
+};
+
+const setAssistantMessageDisplayContent = (msg, content) => {
+    if (!msg) return;
+
+    msg.content = content;
+
+    if (msg.role === 'assistant' && Array.isArray(msg.swipes) && msg.swipes.length > 0) {
+        const idx = msg.currentSwipeIndex || 0;
+        msg.swipes[idx] = content;
+    }
+};
+
+const processAssistantImageBlocks = async (msg) => {
+    if (!msg || msg.role !== 'assistant') return;
+
+    let content = getDisplayContent(msg);
+    if (!content) return;
+
+    const imageBlockRegex = /<miao-image(?:\s+[^>]*)?>([\s\S]*?)<\/miao-image>/gi;
+    const matches = [...content.matchAll(imageBlockRegex)];
+
+    if (!matches.length) return;
+
+    // 单条回复最多处理三张，避免一次回复卡太久
+    const limitedMatches = matches.slice(0, 2);
+
+    for (const match of limitedMatches) {
+        const fullBlock = match[0];
+        const promptText = String(match[1] || '').trim();
+
+        if (!promptText) {
+            content = content.replace(fullBlock, '');
+            setAssistantMessageDisplayContent(msg, content);
+            continue;
+        }
+
+        const loadingBlock = `<div class="miao-image-loading">正在生成插图...</div>`;
+
+        content = content.replace(fullBlock, loadingBlock);
+        setAssistantMessageDisplayContent(msg, content);
+        await nextTick();
+
+        try {
+            showToast('检测到插图提示词，正在调用生图模型。', 'info');
+
+            const imageUrl = await requestMiaoImageFromPrompt(promptText);
+
+            const imageMarkdown = `![AI生成插图](${imageUrl})`;
+
+            content = getDisplayContent(msg).replace(loadingBlock, imageMarkdown);
+            setAssistantMessageDisplayContent(msg, content);
+
+            showToast('插图已生成并插入回复。', 'success');
+        } catch (e) {
+            const failBlock = `<div class="miao-image-loading">插图生成失败：${String(e.message || e).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`;
+
+            content = getDisplayContent(msg).replace(loadingBlock, failBlock);
+            setAssistantMessageDisplayContent(msg, content);
+
+            showToast(`插图生成失败：${e.message}`, 'error');
+        }
+
+        await nextTick();
+        if (chatContainer.value) {
+            chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
+        }
+    }
+
+    saveData();
 };
 
 const onDreamImageLoad = () => {
