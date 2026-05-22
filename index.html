@@ -737,20 +737,8 @@ body {
                     <div class="mt-auto p-2.5 bg-white/50 border border-brand-softGray rounded-2xl mb-1">
                         <p class="text-[10px] text-brand-ink font-bold leading-relaxed mb-2">流光卡片导出</p>
                         <div class="flex gap-2">
-                            <button @click="character_book: char.worldInfo
-    ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
-    : undefined,
-
-regex_scripts: char.regexScripts
-    ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
-    : [],(currentCharacterIndex)" class="flex-1 py-1.5 bg-brand-ink text-white rounded-lg text-[9px] font-black">JSON</button>
-                            <button @click="character_book: char.worldInfo
-    ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
-    : undefined,
-
-regex_scripts: char.regexScripts
-    ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
-    : []," class="flex-1 py-1.5 bg-brand-gold text-white rounded-lg text-[9px] font-black">PNG</button>
+                            <button @click="exportCharacter(currentCharacterIndex)" class="flex-1 py-1.5 bg-brand-ink text-white rounded-lg text-[9px] font-black">JSON</button>
+<button @click="exportPNG" class="flex-1 py-1.5 bg-brand-gold text-white rounded-lg text-[9px] font-black">PNG</button>
                         </div>
                     </div>
                 </template>
@@ -2863,16 +2851,10 @@ const getActiveLorebookCount = () => {
                         if (chatContainer.value) chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
                     });
                 };
-
-                const character_book: character_book: char.worldInfo
-    ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
-    : undefined,
-
-regex_scripts: char.regexScripts
-    ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
-    : [], = (index) => {
+                                const exportCharacter = (index) => {
                     const char = characters.value[index];
                     if (!char) return;
+
                     const cardData = {
                         spec: "chara_card_v3",
                         spec_version: "3.0",
@@ -2885,14 +2867,22 @@ regex_scripts: char.regexScripts
                             mes_example: char.mes_example || "",
                             system_prompt: char.system_prompt || "",
                             post_history_instructions: char.post_history_instructions || "",
-                            character_book: char.worldInfo ? { entries: char.worldInfo } : undefined,
-                            regex_scripts: char.regexScripts || [],
+
+                            character_book: char.worldInfo
+                                ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
+                                : undefined,
+
+                            regex_scripts: char.regexScripts
+                                ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
+                                : [],
+
                             extensions: {
                                 statusVars: char.statusVars,
                                 uiTemplates: char.uiTemplates
                             }
                         }
                     };
+
                     const blob = new Blob([JSON.stringify(cardData, null, 2)], { type: "application/json" });
                     const link = document.createElement("a");
                     link.href = URL.createObjectURL(blob);
@@ -2901,28 +2891,28 @@ regex_scripts: char.regexScripts
                     showToast('角色 JSON 已导出。');
                 };
 
-                const character_book: char.worldInfo
-    ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
-    : undefined,
-
-regex_scripts: char.regexScripts
-    ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
-    : [], = () => {
+                const exportPNG = () => {
                     const char = currentCharacter.value;
                     if (!char) return;
+
                     showToast("正在导出 PNG 角色卡...", "info");
+
                     const canvas = document.createElement("canvas");
                     const ctx = canvas.getContext("2d");
                     const img = new Image();
                     img.crossOrigin = "anonymous";
+
                     img.onload = () => {
                         canvas.width = img.naturalWidth || 512;
                         canvas.height = img.naturalHeight || 512;
                         ctx.drawImage(img, 0, 0);
+
                         canvas.toBlob((blob) => {
                             const reader = new FileReader();
+
                             reader.onload = () => {
                                 const arr = new Uint8Array(reader.result);
+
                                 const cardData = {
                                     spec: "chara_card_v3",
                                     spec_version: "3.0",
@@ -2935,34 +2925,50 @@ regex_scripts: char.regexScripts
                                         mes_example: char.mes_example || "",
                                         system_prompt: char.system_prompt || "",
                                         post_history_instructions: char.post_history_instructions || "",
-                                        character_book: char.worldInfo ? { entries: char.worldInfo } : undefined,
-                                        regex_scripts: char.regexScripts || [],
+
+                                        character_book: char.worldInfo
+                                            ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
+                                            : undefined,
+
+                                        regex_scripts: char.regexScripts
+                                            ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
+                                            : [],
+
                                         extensions: {
                                             statusVars: char.statusVars,
                                             uiTemplates: char.uiTemplates
                                         }
                                     }
                                 };
+
                                 const bytes = new TextEncoder().encode(JSON.stringify(cardData));
                                 let bin = "";
-                                for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
+                                for (let i = 0; i < bytes.byteLength; i++) {
+                                    bin += String.fromCharCode(bytes[i]);
+                                }
+
                                 const cardB64 = btoa(bin);
                                 const newPng = injectPng(arr, "chara", cardB64);
                                 const downloadBlob = new Blob([newPng], { type: "image/png" });
+
                                 const link = document.createElement("a");
                                 link.href = URL.createObjectURL(downloadBlob);
                                 link.download = `miao_char_${String(char.name || 'character').replace(/[\\/:*?"<>|]/g, "_")}.png`;
                                 link.click();
+
                                 showToast("PNG 角色卡已导出。");
                             };
+
                             reader.readAsArrayBuffer(blob);
                         }, "image/png");
                     };
-                    img.onerror = () => showToast("头像加载失败，无法导出 PNG。", "error");
+
+                    img.onerror = () => {
+                        showToast("头像加载失败，无法导出 PNG。请换成本地上传头像。", "error");
+                    };
+
                     img.src = char.avatar || defaultAvatar;
                 };
-
-                const importCharacterFile = (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
                     const ext = file.name.split('.').pop().toLowerCase();
@@ -3295,6 +3301,16 @@ ${wiPack.globalNote ? '【全局备注】\n' + wiPack.globalNote + '\n\n' : ''}$
                     let messages = [{ role: 'system', content: sysPrompt }];
                     const contextHistory = isRegenerate ? chatHistory.value.slice(0, msgIndex) : chatHistory.value;
                     messages = messages.concat(contextHistory.map(m => {
+    const roleNumber = m.role === 'user' ? 1 : 2;
+    let content = parseCot(getDisplayContent(m)).main;
+    content = applyRegexScripts(content, roleNumber, 'prompt');
+
+    return {
+        role: m.role,
+        content
+    };
+}));
+
 if (wiPack.userTop && messages.length > 1) {
     for (let i = messages.length - 1; i >= 0; i--) {
         if (messages[i].role === 'user') {
@@ -3310,15 +3326,6 @@ if (wiPack.assistantTop) {
         content: `【AI响应前置约束】\n${wiPack.assistantTop}`
     });
 }
-    const roleNumber = m.role === 'user' ? 1 : 2;
-    let content = parseCot(getDisplayContent(m)).main;
-    content = applyRegexScripts(content, roleNumber, 'prompt');
-
-    return {
-        role: m.role,
-        content
-    };
-}));
 
                     let targetMsg;
                     if (isRegenerate) {
@@ -4375,14 +4382,8 @@ onBeforeUnmount(() => {
                     getActiveLorebookCount,
 
                     deleteCharacter,
-                    ,
-                   character_book: char.worldInfo
-    ? { entries: char.worldInfo.map(e => ({ ...e, ...normWI(e) })) }
-    : undefined,
-
-regex_scripts: char.regexScripts
-    ? char.regexScripts.map(s => ({ ...s, ...normRX(s) }))
-    : [], ,
+                    exportCharacter,
+                    exportPNG,
                     importCharacterFile,
 
                     createNewPersona,
