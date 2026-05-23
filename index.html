@@ -1323,15 +1323,13 @@ body {
         {{ imagePreviewError }}
     </p>
 
-    <div class="flex flex-wrap gap-2 justify-center">
+        <div class="flex flex-wrap gap-2 justify-center">
         <button @click="downloadDreamImage"
                 class="px-5 py-2.5 bg-brand-gold text-brand-ink rounded-xl text-xs font-bold shadow-soft hover:bg-brand-goldHover hover:text-white transition flex items-center gap-2">
             下载图片
         </button>
     </div>
-    </div>
 </template>
-
                                     <template v-else-if="isGeneratingImage">
                                         <div class="space-y-4">
                                             <div class="w-16 h-16 border-4 border-brand-gold border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -5585,39 +5583,21 @@ const loadData = async () => {
                 memoryData: savedDraft.data.memoryData || createDefaultMemoryData()
             };
 
-            if (savedDraft.editorTab) editorTab.value = savedDraft.editorTab;
+                 if (savedDraft.editorTab) editorTab.value = savedDraft.editorTab;
 
-        } else if (characters.value[0] && editingCharacter.id === undefined) {
+       } else if (characters.value[0] && editingCharacter.id === undefined) {
             editingCharacter.id = 0;
             editingCharacter.data = JSON.parse(JSON.stringify(characters.value[0]));
+
             if (!editingCharacter.data.memoryData) {
                 editingCharacter.data.memoryData = createDefaultMemoryData();
             }
         }
 
-        // 首次迁移后主动写入 IDB
         await saveData();
 
         const estimate = await getStorageEstimateText();
         console.info('[miao-storage]', estimate);
-
-    } catch (e) {
-        console.error('载入 IndexedDB 数据失败：', e);
-        showToast('本地数据载入失败，已使用默认配置。', 'error');
-
-    } finally {
-        appReady.value = true;
-
-        setTimeout(() => {
-            appReady.value = true;
-        }, 300);
-    }
-};
-            if (savedDraft.editorTab) editorTab.value = savedDraft.editorTab;
-        } else if (characters.value[0] && editingCharacter.id === undefined) {
-            editingCharacter.id = 0;
-            editingCharacter.data = JSON.parse(JSON.stringify(characters.value[0]));
-        }
 
     } catch (e) {
         console.error('载入本地数据失败：', e);
