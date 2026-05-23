@@ -777,17 +777,12 @@ body {
                 </template>
 
                 <template v-else-if="currentView === 'image_gen'">
-                    <div class="text-[9px] font-black tracking-widest text-brand-gray mb-2">梦境画师快速推荐</div>
-<div class="p-3 bg-brand-beige/40 rounded-xl space-y-2 text-[10px] font-semibold text-brand-gray/90 leading-relaxed max-h-[42vh] overflow-y-auto">
-    <div v-for="preset in miaoArtistPresets"
-         :key="preset.id"
-         @click="applyArtistPreset(preset.id)"
-         class="cursor-pointer hover:text-brand-gold transition border-b border-brand-softGray/50 pb-2 last:border-b-0 last:pb-0">
-        <div class="font-bold text-brand-ink">{{ preset.name }}</div>
-        <div class="text-[8px] text-brand-gray truncate mt-1">{{ preset.artist }}</div>
+    <div class="h-full flex flex-col items-center justify-center text-center p-4">
+        <span class="text-[10px] text-brand-gray/60 font-medium tracking-wide">
+            画师预设已移动到生图工坊内部
+        </span>
     </div>
-</div>
-                </template>
+</template>
 
                 <template v-else-if="currentView === 'settings'">
                     <div class="text-[9px] font-black tracking-widest text-brand-gray mb-2">网络及测试</div>
@@ -1289,6 +1284,22 @@ body {
                                     </button>
                                 </div>
 
+<div class="bg-white/95 border border-brand-softGray rounded-[24px] shadow-soft overflow-hidden">
+                                <div class="flex items-center justify-between px-5 py-4 border-b border-brand-softGray">
+                                    <h3 class="serif-title font-black text-brand-ink text-base">画师快速推荐</h3>
+                                </div>
+
+                                <div class="p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 max-h-[360px] overflow-y-auto">
+                                    <button v-for="preset in miaoArtistPresets"
+                                            :key="preset.id"
+                                            @click="applyArtistPreset(preset.id)"
+                                            class="text-left p-3 rounded-xl border border-brand-softGray bg-brand-warmWhite hover:border-brand-gold hover:bg-white premium-transition">
+                                        <div class="text-xs font-black text-brand-ink">{{ preset.name }}</div>
+                                        <div class="text-[9px] text-brand-gray truncate mt-1 font-mono">{{ preset.artist }}</div>
+                                    </button>
+                                </div>
+                            </div>
+
                                 <div v-show="!collapsedPanels.imagePreview" class="p-4 sm:p-5 flex flex-col items-center justify-center text-center min-h-[240px] sm:min-h-[300px]">
                                     
              <template v-if="generatedImage">
@@ -1317,13 +1328,7 @@ body {
                 class="px-5 py-2.5 bg-brand-gold text-brand-ink rounded-xl text-xs font-bold shadow-soft hover:bg-brand-goldHover hover:text-white transition flex items-center gap-2">
             下载图片
         </button>
-
-        <div class="flex flex-wrap gap-2 justify-center">
-    <button @click="downloadDreamImage"
-            class="px-5 py-2.5 bg-brand-gold text-brand-ink rounded-xl text-xs font-bold shadow-soft hover:bg-brand-goldHover hover:text-white transition flex items-center gap-2">
-        下载图片
-    </button>
-</div>
+    </div>
     </div>
 </template>
 
@@ -2055,6 +2060,160 @@ body {
 
                         <div class="bg-white/90 border border-brand-softGray rounded-2xl shadow-soft overflow-hidden">
                             <div class="flex items-center justify-between px-5 py-3 border-b border-brand-softGray/60">
+                                <h3 class="serif-title font-black text-brand-ink text-sm">长期记忆系统</h3>
+                                <button @click="togglePanel('settingsMemory')" class="w-8 h-8 rounded-full hover:bg-brand-softGray flex items-center justify-center text-brand-gray">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                        <circle cx="12" cy="12" r="1.5"/>
+                                        <circle cx="12" cy="5" r="1.5"/>
+                                        <circle cx="12" cy="19" r="1.5"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div v-show="!collapsedPanels.settingsMemory" class="p-5 space-y-5">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <label class="flex items-center justify-between bg-brand-beige/30 rounded-xl p-3 border border-brand-softGray">
+                                        <span class="text-xs font-bold text-brand-ink">启用长期记忆</span>
+                                        <input type="checkbox" v-model="memorySettings.enabled" class="w-4 h-4 accent-brand-gold cursor-pointer">
+                                    </label>
+
+                                    <label class="flex items-center justify-between bg-brand-beige/30 rounded-xl p-3 border border-brand-softGray">
+                                        <span class="text-xs font-bold text-brand-ink">每轮自动整理</span>
+                                        <input type="checkbox" v-model="memorySettings.autoRecord" class="w-4 h-4 accent-brand-gold cursor-pointer">
+                                    </label>
+
+                                    <label class="flex items-center justify-between bg-brand-beige/30 rounded-xl p-3 border border-brand-softGray sm:col-span-2">
+                                        <span class="text-xs font-bold text-brand-ink">复用生文 API 地址和密钥</span>
+                                        <input type="checkbox" v-model="memorySettings.reuseTextApi" class="w-4 h-4 accent-brand-gold cursor-pointer">
+                                    </label>
+                                </div>
+
+                                <div v-if="!memorySettings.reuseTextApi" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <div>
+                                        <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1.5">记忆 API Base URL</label>
+                                        <input type="text"
+                                               v-model="memorySettings.apiUrl"
+                                               class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold"
+                                               placeholder="https://api.openai.com/v1">
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1.5">记忆 API Key</label>
+                                        <input type="password"
+                                               v-model="memorySettings.apiKey"
+                                               class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold"
+                                               placeholder="输入记忆模型专用 Key">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-5">
+                                    <div class="sm:col-span-2">
+                                        <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1.5">记忆模型</label>
+                                        <input type="text"
+                                               v-model="memorySettings.model"
+                                               class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold"
+                                               placeholder="gpt-4o-mini">
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1.5">时间线上限</label>
+                                        <input type="number"
+                                               v-model.number="memorySettings.maxTimelineItems"
+                                               min="20"
+                                               max="500"
+                                               class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold">
+                                    </div>
+
+                                    <div>
+                                        <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1.5">重大事件上限</label>
+                                        <input type="number"
+                                               v-model.number="memorySettings.maxMajorEvents"
+                                               min="10"
+                                               max="300"
+                                               class="w-full bg-brand-warmWhite border border-brand-softGray rounded-xl py-2 px-3 text-xs font-mono outline-none focus:border-brand-gold">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="text-[9px] font-black tracking-widest text-brand-gray uppercase block mb-1.5">
+                                        记忆 Temperature：{{ memorySettings.temperature }}
+                                    </label>
+                                    <input type="range"
+                                           v-model.number="memorySettings.temperature"
+                                           min="0"
+                                           max="1"
+                                           step="0.05"
+                                           class="w-full accent-brand-gold bg-brand-softGray h-1.5 rounded-full cursor-pointer mt-3">
+                                </div>
+
+                                <div v-if="currentCharacter && currentCharacter.memoryData"
+                                     class="bg-brand-beige/30 border border-brand-softGray rounded-xl p-3 space-y-2">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span class="text-[10px] font-black tracking-widest text-brand-gray uppercase">当前角色记忆概况</span>
+                                        <button @click="clearCurrentCharacterMemory"
+                                                class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-100 rounded-lg text-[9px] font-black">
+                                            清空当前角色记忆
+                                        </button>
+                                    </div>
+
+                                    <div class="text-[10px] text-brand-gray leading-relaxed">
+                                        <div>时间线：{{ currentCharacter.memoryData.timeline ? currentCharacter.memoryData.timeline.length : 0 }} 条</div>
+                                        <div>重大事件：{{ currentCharacter.memoryData.majorEvents ? currentCharacter.memoryData.majorEvents.length : 0 }} 条</div>
+                                        <div>约定：{{ currentCharacter.memoryData.commitments ? currentCharacter.memoryData.commitments.length : 0 }} 条</div>
+                                        <div>礼物：{{ currentCharacter.memoryData.gifts ? currentCharacter.memoryData.gifts.length : 0 }} 条</div>
+                                        <div>未解决伏笔：{{ currentCharacter.memoryData.unresolved ? currentCharacter.memoryData.unresolved.length : 0 }} 条</div>
+                                    </div>
+                                </div>
+
+                                <p class="text-[10px] text-brand-gray leading-relaxed bg-brand-beige/30 rounded-xl p-3 border border-brand-softGray">
+                                    长期记忆会把过往对话压缩为时间、地点、事件、在场角色、关系变化、重大事件、约定、礼物和未解决伏笔，再注入给生文模型。它会减少主模型遗忘，但不会把图片或大段原文写入记忆。
+                                </p>
+                            </div>
+                        </div>
+
+<div class="bg-white/90 border border-brand-softGray rounded-2xl shadow-soft overflow-hidden">
+                            <div class="flex items-center justify-between px-5 py-3 border-b border-brand-softGray/60">
+                                <h3 class="serif-title font-black text-brand-ink text-sm">IndexedDB 本地存储</h3>
+                                <button @click="togglePanel('settingsStorage')" class="w-8 h-8 rounded-full hover:bg-brand-softGray flex items-center justify-center text-brand-gray">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                                        <circle cx="12" cy="12" r="1.5"/>
+                                        <circle cx="12" cy="5" r="1.5"/>
+                                        <circle cx="12" cy="19" r="1.5"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div v-show="!collapsedPanels.settingsStorage" class="p-5 space-y-4">
+                                <div class="bg-brand-beige/30 border border-brand-softGray rounded-xl p-3">
+                                    <div class="text-[9px] font-black tracking-widest text-brand-gray uppercase mb-1">当前浏览器存储估算</div>
+                                    <div class="text-xs font-bold text-brand-ink">{{ storageEstimateText }}</div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <button @click="refreshStorageEstimate"
+                                            class="px-4 py-2 bg-white hover:bg-brand-softGray border border-brand-softGray text-brand-ink rounded-xl text-xs font-bold">
+                                        刷新容量估算
+                                    </button>
+
+                                    <button @click="requestStoragePersistFromUI"
+                                            class="px-4 py-2 bg-brand-gold text-brand-ink hover:bg-brand-goldHover rounded-xl text-xs font-black">
+                                        申请持久化存储
+                                    </button>
+
+                                    <button @click="clearAllIndexedDBData"
+                                            class="px-4 py-2 bg-red-50 text-red-600 border border-red-100 rounded-xl text-xs font-black">
+                                        清空全部本地数据
+                                    </button>
+                                </div>
+
+                                <p class="text-[10px] text-brand-gray leading-relaxed bg-brand-beige/30 rounded-xl p-3 border border-brand-softGray">
+                                    IndexedDB 容量由浏览器和设备剩余空间决定。申请持久化存储后，浏览器更不容易自动清理本站数据。不同浏览器策略不同，无法保证无限容量。
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/90 border border-brand-softGray rounded-2xl shadow-soft overflow-hidden">
+                            <div class="flex items-center justify-between px-5 py-3 border-b border-brand-softGray/60">
                                 <h3 class="serif-title font-black text-brand-ink text-sm">显示与背景</h3>
                                 <button @click="togglePanel('settingsDisplay')" class="w-8 h-8 rounded-full hover:bg-brand-softGray flex items-center justify-center text-brand-gray">
                                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
@@ -2150,6 +2309,180 @@ body {
             var r = Math.random() * 16 | 0;
             return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
         });
+
+const MIAO_DB_NAME = 'miao_slowchat_indexeddb_v1';
+const MIAO_DB_VERSION = 1;
+const MIAO_KV_STORE = 'kv';
+
+let miaoDbPromise = null;
+
+const openMiaoDB = () => {
+    if (miaoDbPromise) return miaoDbPromise;
+
+    miaoDbPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(MIAO_DB_NAME, MIAO_DB_VERSION);
+
+        req.onupgradeneeded = (event) => {
+            const db = event.target.result;
+
+            if (!db.objectStoreNames.contains(MIAO_KV_STORE)) {
+                db.createObjectStore(MIAO_KV_STORE, { keyPath: 'key' });
+            }
+        };
+
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+
+    return miaoDbPromise;
+};
+
+const idbSet = async (key, value) => {
+    const db = await openMiaoDB();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(MIAO_KV_STORE, 'readwrite');
+        const store = tx.objectStore(MIAO_KV_STORE);
+
+        store.put({
+            key,
+            value,
+            updatedAt: Date.now()
+        });
+
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+    });
+};
+
+const idbGet = async (key, fallback = null) => {
+    const db = await openMiaoDB();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(MIAO_KV_STORE, 'readonly');
+        const store = tx.objectStore(MIAO_KV_STORE);
+        const req = store.get(key);
+
+        req.onsuccess = () => {
+            if (req.result && Object.prototype.hasOwnProperty.call(req.result, 'value')) {
+                resolve(req.result.value);
+            } else {
+                resolve(fallback);
+            }
+        };
+
+        req.onerror = () => reject(req.error);
+    });
+};
+
+const idbDel = async (key) => {
+    const db = await openMiaoDB();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(MIAO_KV_STORE, 'readwrite');
+        tx.objectStore(MIAO_KV_STORE).delete(key);
+
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+    });
+};
+
+const idbClearAll = async () => {
+    const db = await openMiaoDB();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(MIAO_KV_STORE, 'readwrite');
+        tx.objectStore(MIAO_KV_STORE).clear();
+
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+    });
+};
+
+const requestPersistentStorage = async () => {
+    try {
+        if (navigator.storage && navigator.storage.persist) {
+            const persisted = await navigator.storage.persist();
+            console.info('[miao-storage] 持久化存储状态：', persisted);
+            return persisted;
+        }
+    } catch (e) {
+        console.warn('[miao-storage] 持久化存储申请失败：', e);
+    }
+
+    return false;
+};
+
+const getStorageEstimateText = async () => {
+    try {
+        if (!navigator.storage || !navigator.storage.estimate) return '当前浏览器不支持容量估算';
+
+        const estimate = await navigator.storage.estimate();
+        const usedMB = Math.round((estimate.usage || 0) / 1024 / 1024);
+        const quotaMB = Math.round((estimate.quota || 0) / 1024 / 1024);
+
+        return `已用约 ${usedMB} MB / 可用约 ${quotaMB} MB`;
+    } catch (e) {
+        return '容量估算失败';
+    }
+};
+
+const safeLocalSetSmall = (key, value) => {
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    } catch (e) {
+        console.warn('[miao-local-small] 写入失败：', key, e);
+        return false;
+    }
+};
+
+const createDefaultMemoryData = () => ({
+    enabled: true,
+
+    // 长期压缩记忆：给主模型读
+    longSummary: '',
+
+    // 关系总览：给主模型读
+    relationshipSummary: '',
+
+    // 用户印象：角色如何理解用户
+    userImpression: '',
+
+    // 当前连续状态：地点、服装、伤势、道具、气氛等
+    continuityState: {
+        currentTime: '',
+        currentLocation: '',
+        currentScene: '',
+        presentCharacters: [],
+        clothingState: '',
+        physicalState: '',
+        emotionalTone: '',
+        importantProps: [],
+        unresolvedTension: []
+    },
+
+    // 最近详细时间线：按轮记录
+    timeline: [],
+
+    // 重大事件：长期保留
+    majorEvents: [],
+
+    // 约定、承诺、秘密
+    commitments: [],
+
+    // 礼物、物品交换
+    gifts: [],
+
+    // 未解决伏笔或冲突
+    unresolved: [],
+
+    // 最近已整理到哪一轮
+    lastProcessedMessageId: ''
+});
 
         const parseCot = (text) => {
             if (!text) return { sys: '', cot: '', main: '' };
@@ -2454,6 +2787,26 @@ const updateMobileState = () => {
                     sampler: 'k_dpmpp_2m_sde'
                 });
 
+const memorySettings = reactive({
+    enabled: true,
+    apiUrl: 'https://api.openai.com/v1',
+    apiKey: '',
+    model: 'gpt-4o-mini',
+    temperature: 0.2,
+
+    // 每轮回复后是否自动整理
+    autoRecord: true,
+
+    // 最近详细时间线最多保留多少条
+    maxTimelineItems: 80,
+
+    // 重大事件最多保留多少条
+    maxMajorEvents: 40,
+
+    // 如果没有单独填写记忆 Key，是否复用生文 API
+    reuseTextApi: true
+});
+
                 const wallpaperPresets = [
                     { id: 'rain', name: '翠竹微雨', url: 'https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=1200', desc: '自然绿意' },
                     { id: 'library', name: '深夜书房', url: 'https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1200', desc: '纸墨微光' },
@@ -2501,15 +2854,17 @@ const updateMobileState = () => {
                 });
 
                 const collapsedPanels = reactive({
-                    lobbyHero: false,
-                    imageConfig: false,
-                    imagePreview: false,
-                    warehouseToolbar: false,
-                    personaToolbar: false,
-                    settingsApi: false,
-                    settingsModel: false,
-                    settingsDisplay: false
-                });
+    lobbyHero: false,
+    imageConfig: false,
+    imagePreview: false,
+    warehouseToolbar: false,
+    personaToolbar: false,
+    settingsApi: false,
+    settingsModel: false,
+    settingsMemory: false,
+    settingsStorage: false,
+    settingsDisplay: false
+});
 
                 const togglePanel = (key) => {
                     collapsedPanels[key] = !collapsedPanels[key];
@@ -2630,59 +2985,116 @@ const switchEditorTab = (id) => {
 
 const scheduleSave = () => {
     if (saveTimer) clearTimeout(saveTimer);
+
     saveTimer = setTimeout(() => {
-        saveData();
+        saveData().catch(e => {
+            console.warn('[miao-save] 自动保存失败：', e);
+        });
     }, 800);
 };
 
-const saveData = () => {
-    try {
-        localStorage.setItem('miao_chars', JSON.stringify(characters.value));
+const prepareMessageForIDB = (msg) => {
+    if (!msg) return msg;
 
-        if (currentCharacter.value) {
-            localStorage.setItem(`miao_chat_${currentCharacter.value.uuid}`, JSON.stringify(chatHistory.value));
-        }
+    const clean = JSON.parse(JSON.stringify(msg));
 
-        localStorage.setItem('miao_user_profiles', JSON.stringify(userProfiles.value));
-        localStorage.setItem('miao_active_persona_idx', String(activePersonaIndex.value));
-        localStorage.setItem('miao_settings', JSON.stringify(settings));
-        localStorage.setItem('miao_models_list', JSON.stringify(modelsList.value));
-        localStorage.setItem('miao_custom_chat_bg', customChatBg.value || '');
-        localStorage.setItem('miao_image_settings', JSON.stringify(imageSettings));
-        localStorage.setItem('miao_sidebar_collapsed', sidebarCollapsed.value ? '1' : '0');
+    delete clean.isEditing_Message;
+    delete clean.editMessageContent;
+    delete clean.isReasoningOpen;
 
-if (currentCharacter.value?.uuid) {
-    localStorage.setItem('miao_current_character_uuid', currentCharacter.value.uuid);
-}
-
-        const draftPayload = JSON.stringify({
-    id: editingCharacter.id,
-    data: editingCharacter.data,
-    editorTab: editorTab.value,
-    updatedAt: Date.now()
-});
-
-if (draftPayload.length < 800000) {
-    localStorage.setItem('miao_editor_draft', draftPayload);
-} else {
-    localStorage.setItem('miao_editor_draft', JSON.stringify({
-        id: editingCharacter.id,
-        editorTab: editorTab.value,
-        updatedAt: Date.now(),
-        skipped: true
-    }));
-}
-    } catch (e) {
-        console.error('保存失败：', e);
-        showToast('本地保存失败，可能是浏览器存储空间不足。请导出角色卡备份。', 'error');
+    if (clean.reasoning && String(clean.reasoning).length > 2000) {
+        clean.reasoning = '';
     }
+
+    // 生成图长期保留：不跳过 base64
+    if (clean.miaoGeneratedImages && typeof clean.miaoGeneratedImages === 'object') {
+        const keptImages = {};
+
+        Object.entries(clean.miaoGeneratedImages).forEach(([id, src]) => {
+            const s = String(src || '').trim();
+            if (!s) return;
+            keptImages[id] = s;
+        });
+
+        clean.miaoGeneratedImages = keptImages;
+    }
+
+    return clean;
 };
 
+const prepareChatForIDB = () => {
+    return chatHistory.value.map(prepareMessageForIDB);
+};
+
+const prepareCharactersForIDB = () => {
+    return characters.value.map(c => {
+        const clean = JSON.parse(JSON.stringify(c));
+
+        if (!clean.memoryData) {
+            clean.memoryData = createDefaultMemoryData();
+        }
+
+        if (
+            clean.avatar &&
+            String(clean.avatar).startsWith('data:image') &&
+            String(clean.avatar).length > 1200000
+        ) {
+            clean.avatar = defaultAvatar;
+            clean.avatarSkipped = true;
+        }
+
+        return clean;
+    });
+};
+
+const saveData = async () => {
+    try {
+        await idbSet('miao_chars', prepareCharactersForIDB());
+
+        if (currentCharacter.value?.uuid) {
+            await idbSet(`miao_chat_${currentCharacter.value.uuid}`, prepareChatForIDB());
+            safeLocalSetSmall('miao_current_character_uuid', currentCharacter.value.uuid);
+        }
+
+        await idbSet('miao_user_profiles', JSON.parse(JSON.stringify(userProfiles.value)));
+        await idbSet('miao_settings', JSON.parse(JSON.stringify(settings)));
+        await idbSet('miao_memory_settings', JSON.parse(JSON.stringify(memorySettings)));
+        await idbSet('miao_models_list', JSON.parse(JSON.stringify(modelsList.value)));
+        await idbSet('miao_image_settings', JSON.parse(JSON.stringify(imageSettings)));
+        await idbSet('miao_custom_chat_bg', customChatBg.value || '');
+
+        const draftPayload = {
+            id: editingCharacter.id,
+            data: JSON.parse(JSON.stringify(editingCharacter.data)),
+            editorTab: editorTab.value,
+            updatedAt: Date.now()
+        };
+
+        await idbSet('miao_editor_draft', draftPayload);
+
+        safeLocalSetSmall('miao_active_persona_idx', String(activePersonaIndex.value));
+        safeLocalSetSmall('miao_sidebar_collapsed', sidebarCollapsed.value ? '1' : '0');
+
+    } catch (e) {
+        console.error('IndexedDB 保存失败：', e);
+
+        try {
+            safeLocalSetSmall('miao_current_character_uuid', currentCharacter.value?.uuid || '');
+            safeLocalSetSmall('miao_active_persona_idx', String(activePersonaIndex.value));
+            safeLocalSetSmall('miao_sidebar_collapsed', sidebarCollapsed.value ? '1' : '0');
+        } catch (fallbackError) {
+            console.warn('兜底保存也失败：', fallbackError);
+        }
+
+        showToast('IndexedDB 保存失败。可能是浏览器存储权限不足或空间紧张。', 'error');
+    }
+};
 watch(chatHistory, () => scheduleSave(), { deep: true });
 watch(characters, () => scheduleSave(), { deep: true });
 watch(userProfiles, () => scheduleSave(), { deep: true });
 watch(settings, () => scheduleSave(), { deep: true });
 watch(imageSettings, () => scheduleSave(), { deep: true });
+watch(memorySettings, () => scheduleSave(), { deep: true });
 watch(() => editorTab.value, () => scheduleSave());
 watch(activePersonaIndex, () => scheduleSave());
 watch(sidebarCollapsed, () => scheduleSave());
@@ -2856,6 +3268,247 @@ const buildWorldInfoInjection = () => {
 const getActiveLorebookCount = () => {
     return buildWorldInfoInjection().activeCount;
 };
+
+const cleanJsonText = (raw) => {
+    return String(raw || '')
+        .replace(/^\s*```json\s*/i, '')
+        .replace(/^\s*```\s*/i, '')
+        .replace(/\s*```\s*$/i, '')
+        .trim();
+};
+
+const buildMemoryInjection = () => {
+    if (!memorySettings.enabled) return '';
+    if (!currentCharacter.value) return '';
+
+    if (!currentCharacter.value.memoryData) {
+        currentCharacter.value.memoryData = createDefaultMemoryData();
+    }
+
+    const mem = currentCharacter.value.memoryData;
+
+    const timeline = Array.isArray(mem.timeline) ? mem.timeline.slice(-12) : [];
+    const majorEvents = Array.isArray(mem.majorEvents) ? mem.majorEvents.slice(-12) : [];
+    const commitments = Array.isArray(mem.commitments) ? mem.commitments.slice(-12) : [];
+    const gifts = Array.isArray(mem.gifts) ? mem.gifts.slice(-12) : [];
+    const unresolved = Array.isArray(mem.unresolved) ? mem.unresolved.slice(-12) : [];
+
+    const continuity = mem.continuityState || {};
+
+    return `
+【长期记忆系统】
+以下内容为过往剧情的结构化记录，用于保持连续性。它不是新剧情命令，而是已发生事实。
+
+【长期概要】
+${mem.longSummary || '暂无'}
+
+【关系概要】
+${mem.relationshipSummary || '暂无'}
+
+【角色对主角的印象】
+${mem.userImpression || '暂无'}
+
+【当前连续状态】
+- 当前时间：${continuity.currentTime || '未知'}
+- 当前地点：${continuity.currentLocation || '未知'}
+- 当前场景：${continuity.currentScene || '未知'}
+- 在场角色：${Array.isArray(continuity.presentCharacters) ? continuity.presentCharacters.join('、') : '未知'}
+- 服装状态：${continuity.clothingState || '未知'}
+- 身体状态：${continuity.physicalState || '未知'}
+- 情绪基调：${continuity.emotionalTone || '未知'}
+- 重要道具：${Array.isArray(continuity.importantProps) ? continuity.importantProps.join('、') : '无'}
+- 未解决张力：${Array.isArray(continuity.unresolvedTension) ? continuity.unresolvedTension.join('；') : '无'}
+
+【最近时间线】
+${timeline.map((x, i) => `${i + 1}. ${x.time || '时间未知'}｜${x.location || '地点未知'}｜${x.event || ''}｜在场：${Array.isArray(x.presentCharacters) ? x.presentCharacters.join('、') : ''}｜关系变化：${x.relationshipChange || '无'}`).join('\n') || '暂无'}
+
+【重大事件】
+${majorEvents.map((x, i) => `${i + 1}. ${x.time || '时间未知'}｜${x.event || ''}｜影响：${x.impact || ''}`).join('\n') || '暂无'}
+
+【约定与承诺】
+${commitments.map((x, i) => `${i + 1}. ${x.time || '时间未知'}｜${x.content || ''}｜状态：${x.status || '未完成'}`).join('\n') || '暂无'}
+
+【礼物与物品交换】
+${gifts.map((x, i) => `${i + 1}. ${x.time || '时间未知'}｜${x.item || ''}｜${x.from || ''}→${x.to || ''}｜意义：${x.meaning || ''}`).join('\n') || '暂无'}
+
+【未解决伏笔】
+${unresolved.map((x, i) => `${i + 1}. ${x.content || ''}｜优先级：${x.priority || '普通'}`).join('\n') || '暂无'}
+
+【使用要求】
+- 保持时间、地点、衣物、身体状态、承诺、礼物、关系变化和未解决事件连续。
+- 若最新聊天与旧记忆冲突，以最新聊天为准。
+- 不要在正文中提及“记忆系统”。
+`.trim();
+};
+
+const recordMemoryAfterTurn = async () => {
+    if (!memorySettings.enabled || !memorySettings.autoRecord) return;
+    if (!currentCharacter.value) return;
+
+    if (!currentCharacter.value.memoryData) {
+        currentCharacter.value.memoryData = createDefaultMemoryData();
+    }
+
+    const mem = currentCharacter.value.memoryData;
+
+    const apiUrl = memorySettings.reuseTextApi ? settings.apiUrl : memorySettings.apiUrl;
+    const apiKey = memorySettings.reuseTextApi ? settings.apiKey : memorySettings.apiKey;
+    const model = memorySettings.model || settings.model;
+
+    if (!apiUrl || !apiKey || !model) {
+        console.warn('[miao-memory] 记忆模型配置不足，跳过。');
+        return;
+    }
+
+    const recentMessages = chatHistory.value.slice(-8).map(m => ({
+        role: m.role,
+        name: m.name,
+        content: parseCot(getDisplayContent(m)).main
+            .replace(/<miao-image-render\s+data-miao-image-id="([^"]+)"\s*><\/miao-image-render>/gi, '[插图]')
+            .replace(/<miao-image(?:\s+[^>]*)?>[\s\S]*?<\/miao-image>/gi, '[插图提示词]')
+            .slice(0, 8000)
+    }));
+
+    const systemPrompt = `
+你是结构化记忆整理模型，只负责记录事实，不续写剧情。
+必须只输出严格 JSON，不要 Markdown，不要解释。
+
+根据旧记忆和最近对话，更新角色记忆。
+
+必须记录：
+- 每轮对话的时间、地点、事件。
+- 在场角色。
+- 角色与主角关系变化。
+- 是否有重大事件，例如约定、承诺、送礼物、受伤、关系突破、秘密揭露、争吵、和解、亲密接触、剧情转折。
+- 当前连续状态，包括地点、场景、服装、身体状态、情绪气氛、重要道具、未解决张力。
+- 只记录已发生事实，不预测未来。
+- 不保存大段原文，不保存图片，不保存无意义寒暄。
+
+输出 JSON 格式：
+{
+  "longSummary": "",
+  "relationshipSummary": "",
+  "userImpression": "",
+  "continuityState": {
+    "currentTime": "",
+    "currentLocation": "",
+    "currentScene": "",
+    "presentCharacters": [],
+    "clothingState": "",
+    "physicalState": "",
+    "emotionalTone": "",
+    "importantProps": [],
+    "unresolvedTension": []
+  },
+  "newTimelineItems": [
+    {
+      "time": "",
+      "location": "",
+      "event": "",
+      "presentCharacters": [],
+      "relationshipChange": "",
+      "isMajor": false
+    }
+  ],
+  "newMajorEvents": [
+    {
+      "time": "",
+      "event": "",
+      "impact": ""
+    }
+  ],
+  "newCommitments": [
+    {
+      "time": "",
+      "content": "",
+      "status": "未完成"
+    }
+  ],
+  "newGifts": [
+    {
+      "time": "",
+      "item": "",
+      "from": "",
+      "to": "",
+      "meaning": ""
+    }
+  ],
+  "newUnresolved": [
+    {
+      "content": "",
+      "priority": "普通"
+    }
+  ]
+}
+`.trim();
+
+    const userPrompt = JSON.stringify({
+        characterName: currentCharacter.value.name,
+        personaName: activePersona.value.name,
+        oldMemory: mem,
+        recentMessages
+    }, null, 2);
+
+    try {
+        const res = await fetch(`${apiUrl.replace(/\/$/, '')}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                stream: false,
+                temperature: Number(memorySettings.temperature ?? 0.2)
+            })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        const raw = data.choices?.[0]?.message?.content || '';
+        const parsed = JSON.parse(cleanJsonText(raw));
+
+        mem.longSummary = parsed.longSummary || mem.longSummary || '';
+        mem.relationshipSummary = parsed.relationshipSummary || mem.relationshipSummary || '';
+        mem.userImpression = parsed.userImpression || mem.userImpression || '';
+
+        if (parsed.continuityState && typeof parsed.continuityState === 'object') {
+            mem.continuityState = {
+                ...mem.continuityState,
+                ...parsed.continuityState
+            };
+        }
+
+        const appendList = (targetKey, newItems, max) => {
+            if (!Array.isArray(mem[targetKey])) mem[targetKey] = [];
+
+            if (Array.isArray(newItems)) {
+                mem[targetKey].push(...newItems.filter(Boolean));
+                mem[targetKey] = mem[targetKey].slice(-max);
+            }
+        };
+
+        appendList('timeline', parsed.newTimelineItems, Number(memorySettings.maxTimelineItems || 80));
+        appendList('majorEvents', parsed.newMajorEvents, Number(memorySettings.maxMajorEvents || 40));
+        appendList('commitments', parsed.newCommitments, 40);
+        appendList('gifts', parsed.newGifts, 40);
+        appendList('unresolved', parsed.newUnresolved, 40);
+
+        const lastMsg = chatHistory.value[chatHistory.value.length - 1];
+        mem.lastProcessedMessageId = lastMsg?.id || mem.lastProcessedMessageId || '';
+
+        await saveData();
+
+    } catch (e) {
+        console.warn('[miao-memory] 整理失败：', e);
+        showToast(`记忆整理失败：${e.message}`, 'error');
+    }
+};
                 const closeCharacterEditor = () => showCharacterEditor.value = false;
 
                 const createNewCharacter = () => {
@@ -2874,7 +3527,8 @@ const getActiveLorebookCount = () => {
                         statusVars: { affection: 50, trust: 30, dependency: 20 },
                         worldInfo: [],
                         regexScripts: [],
-                        uiTemplates: []
+                        uiTemplates: [],
+                        memoryData: createDefaultMemoryData()
                     };
                     editorTab.value = 'basic';
                     currentView.value = 'editor';
@@ -2890,27 +3544,31 @@ const getActiveLorebookCount = () => {
                     if (!charData.regexScripts) charData.regexScripts = [];
                     if (!charData.uiTemplates) charData.uiTemplates = [];
                     if (!charData.statusVars) charData.statusVars = { affection: 50, trust: 30, dependency: 20 };
+                    if (!charData.memoryData) charData.memoryData = createDefaultMemoryData();
                     editingCharacter.data = charData;
                 };
 
-                const saveCharacter = () => {
-                    if (!editingCharacter.data.uuid) editingCharacter.data.uuid = generateUUID();
-                    if (editingCharacter.id !== undefined && characters.value[editingCharacter.id]) {
-                        characters.value[editingCharacter.id] = { ...editingCharacter.data };
-                        showToast('角色参数已保存。');
-                    } else {
-                        characters.value.unshift({ ...editingCharacter.data });
-                        selectCharacter(0);
-                        showToast('新角色已保存并激活。');
-                    }
-                    saveData();
-                };
+                const saveCharacter = async () => {
+    if (!editingCharacter.data.uuid) editingCharacter.data.uuid = generateUUID();
+    if (!editingCharacter.data.memoryData) editingCharacter.data.memoryData = createDefaultMemoryData();
 
+    if (editingCharacter.id !== undefined && characters.value[editingCharacter.id]) {
+        characters.value[editingCharacter.id] = { ...editingCharacter.data };
+        showToast('角色参数已保存。');
+    } else {
+        characters.value.unshift({ ...editingCharacter.data });
+        await selectCharacter(0);
+        showToast('新角色已保存并激活。');
+    }
+
+    await saveData();
+};
                 const deleteCharacter = async (idx) => {
                     const char = characters.value[idx];
                     if (!char) return;
                     const confirmed = await confirmDialog(`确定删除《${char.name}》吗？`);
                     if (confirmed) {
+                        await idbDel(`miao_chat_${char.uuid}`);
                         localStorage.removeItem(`miao_chat_${char.uuid}`);
                         characters.value.splice(idx, 1);
                         currentCharacterIndex.value = -1;
@@ -2920,33 +3578,52 @@ const getActiveLorebookCount = () => {
                     }
                 };
 
-                const selectCharacter = (index) => {
-                    const char = characters.value[index];
-                    if (!char) return;
-                    currentCharacterIndex.value = index;
-                    const savedChat = localStorage.getItem(`miao_chat_${char.uuid}`);
-                    if (savedChat) {
-                        chatHistory.value = JSON.parse(savedChat);
-                    } else {
-                        chatHistory.value = [];
-                        if (char.first_mes) {
-                            chatHistory.value.push({
-                                role: 'assistant',
-                                name: char.name,
-                                content: char.first_mes,
-                                id: generateUUID(),
-                                swipes: [char.first_mes],
-                                currentSwipeIndex: 0
-                            });
-                        }
-                    }
-                    currentView.value = 'chat_room';
-                    showMobileMenu.value = false;
-                    editCharacter(index);
-                    nextTick(() => {
-                        if (chatContainer.value) chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
-                    });
-                };
+                const selectCharacter = async (index) => {
+    const char = characters.value[index];
+    if (!char) return;
+
+    if (!char.memoryData) {
+        char.memoryData = createDefaultMemoryData();
+    }
+
+    currentCharacterIndex.value = index;
+
+    const savedChat = await idbGet(
+        `miao_chat_${char.uuid}`,
+        safeJsonParse(localStorage.getItem(`miao_chat_${char.uuid}`), null)
+    );
+
+    if (Array.isArray(savedChat) && savedChat.length) {
+        chatHistory.value = savedChat;
+    } else {
+        chatHistory.value = [];
+
+        if (char.first_mes) {
+            chatHistory.value.push({
+                role: 'assistant',
+                name: char.name,
+                content: char.first_mes,
+                id: generateUUID(),
+                swipes: [char.first_mes],
+                currentSwipeIndex: 0
+            });
+        }
+    }
+
+    currentView.value = 'chat_room';
+    showMobileMenu.value = false;
+    editCharacter(index);
+
+    safeLocalSetSmall('miao_current_character_uuid', char.uuid);
+
+    await saveData();
+
+    nextTick(() => {
+        if (chatContainer.value) {
+            chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
+        }
+    });
+};
                                 const exportCharacter = (index) => {
                     const char = characters.value[index];
                     if (!char) return;
@@ -3156,7 +3833,8 @@ const getActiveLorebookCount = () => {
                         statusVars: { affection: 50, trust: 30, dependency: 20 },
                         worldInfo: [],
                         regexScripts: [],
-                        uiTemplates: []
+                        uiTemplates: [],
+                        memoryData: cd.memoryData || cd.extensions?.memoryData || createDefaultMemoryData()
                     };
 
                     let entries = [];
@@ -3593,10 +4271,12 @@ const replyImageProtocol = settings.enableReplyImage ? `
 负面提示词由前端统一附加，你无需在 <miao-image> 中重复编写长负面词。
 ` : '';
 
+const memoryInjection = buildMemoryInjection();
+
 let sysPrompt = `${wiPack.systemTop ? wiPack.systemTop + '\n\n' : ''}${charSystemPromptForAI ? '【角色系统提示】\n' + charSystemPromptForAI + '\n\n' : ''}${wiPack.beforeChar ? wiPack.beforeChar + '\n\n' : ''}你现在扮演：${currentCharacter.value.name}
 ${charPersonalityForAI}
 
-${wiPack.afterChar ? wiPack.afterChar + '\n\n' : ''}场景：
+${memoryInjection ? memoryInjection + '\n\n' : ''}${wiPack.afterChar ? wiPack.afterChar + '\n\n' : ''}场景：
 ${charScenarioForAI}
 
 当前与角色对话的主角：
@@ -3734,11 +4414,13 @@ if (newSwipeContent && !targetMsg.swipes.includes(newSwipeContent)) {
     targetMsg.currentSwipeIndex = targetMsg.swipes.length - 1;
 }
 
+await recordMemoryAfterTurn();
+
 await processAssistantImageBlocks(targetMsg);
 
 abortController.value = null;
 syncUITemplateVars();
-saveData();
+await saveData();
                     }
                 };
 
@@ -3752,6 +4434,8 @@ saveData();
                         }
                     });
                 };
+
+
 
                 const openAIFullCardCreator = () => {
                     fullCardCreatorState.show = true;
@@ -3842,8 +4526,9 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                             statusVars: card.statusVars || { affection: 50, trust: 30, dependency: 20 },
                             worldInfo: Array.isArray(card.worldInfo) ? card.worldInfo.map(normWI) : [],
                             regexScripts: Array.isArray(card.regexScripts) ? card.regexScripts.map(normRX) : [],
-                            uiTemplates: Array.isArray(card.uiTemplates) ? card.uiTemplates.map(normUI) : []
-                        };
+                            uiTemplates: Array.isArray(card.uiTemplates) ? card.uiTemplates.map(normUI) : [],
+                            memoryData: card.memoryData || createDefaultMemoryData()
+                   };
 
                         editorTab.value = 'basic';
                         fullCardCreatorState.show = false;
@@ -3964,13 +4649,80 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                 };
 
                 const clearChat = async () => {
-                    const confirmed = await confirmDialog("确定清空当前角色对话历史吗？");
-                    if (confirmed) {
-                        chatHistory.value = [];
-                        saveData();
-                        showToast('对话历史已清空。', 'info');
-                    }
-                };
+    const confirmed = await confirmDialog("确定清空当前角色对话历史吗？");
+    if (confirmed) {
+        if (currentCharacter.value?.uuid) {
+            await idbDel(`miao_chat_${currentCharacter.value.uuid}`);
+            localStorage.removeItem(`miao_chat_${currentCharacter.value.uuid}`);
+        }
+
+        chatHistory.value = [];
+
+        await saveData();
+        showToast('对话历史已清空。', 'info');
+    }
+};
+const storageEstimateText = ref('尚未读取');
+
+const refreshStorageEstimate = async () => {
+    storageEstimateText.value = await getStorageEstimateText();
+};
+
+const requestStoragePersistFromUI = async () => {
+    const ok = await requestPersistentStorage();
+    await refreshStorageEstimate();
+
+    if (ok) {
+        showToast('浏览器已允许本站使用持久化存储。', 'success');
+    } else {
+        showToast('浏览器未授予持久化存储，仍可继续使用 IndexedDB。', 'info');
+    }
+};
+
+const clearCurrentCharacterMemory = async () => {
+    if (!currentCharacter.value) return;
+
+    const confirmed = await confirmDialog(`确定清空《${currentCharacter.value.name}》的长期记忆吗？`);
+    if (!confirmed) return;
+
+    currentCharacter.value.memoryData = createDefaultMemoryData();
+
+    if (
+        editingCharacter.id !== undefined &&
+        characters.value[editingCharacter.id] &&
+        characters.value[editingCharacter.id].uuid === currentCharacter.value.uuid
+    ) {
+        editingCharacter.data.memoryData = createDefaultMemoryData();
+    }
+
+    await saveData();
+    showToast('当前角色长期记忆已清空。', 'warning');
+};
+
+const clearAllIndexedDBData = async () => {
+    const confirmed = await confirmDialog('此操作会清空 IndexedDB 内的角色、聊天、设置、记忆、草稿。建议先导出备份。确定继续吗？');
+    if (!confirmed) return;
+
+    try {
+        await idbClearAll();
+
+        characters.value = [];
+        chatHistory.value = [];
+        currentCharacterIndex.value = -1;
+        editingCharacter.id = undefined;
+        editingCharacter.data = { statusVars: {}, worldInfo: [], regexScripts: [], uiTemplates: [], memoryData: createDefaultMemoryData() };
+
+        localStorage.removeItem('miao_current_character_uuid');
+        localStorage.removeItem('miao_active_persona_idx');
+        localStorage.removeItem('miao_sidebar_collapsed');
+
+        await refreshStorageEstimate();
+
+        showToast('IndexedDB 已清空。', 'warning');
+    } catch (e) {
+        showToast(`清空失败：${e.message}`, 'error');
+    }
+};
 
                 const copyMessage = (txt) => {
     const el = document.createElement('textarea');
@@ -4071,12 +4823,12 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                     }
                 };
 
-                const manualSave = () => {
-                    saveData();
-                    currentView.value = 'chat_room';
-                    showToast('设置已保存。');
-                };
-
+                const manualSave = async () => {
+    await saveData();
+    await refreshStorageEstimate();
+    currentView.value = 'chat_room';
+    showToast('设置已保存。');
+};
                 const addStatusVar = () => {
                     const key = newStatusVarName.value.trim().toLowerCase();
                     if (!key) return;
@@ -4156,13 +4908,23 @@ statusVars 至少3个。worldInfo 至少3条。regexScripts 至少1条。uiTempl
                     }
 
                     const safeHistory = JSON.parse(JSON.stringify(chatHistory.value)).map(msg => {
-    if (msg && msg.miaoGeneratedImages) {
-        msg.miaoGeneratedImages = {};
+    // 导出时保留 miaoGeneratedImages。
+    // 如果里面是 base64，导出的 JSON 会很大，这是正常现象。
+    // 这样才能保证导入后生成图仍然可显示。
+
+    if (msg && msg.reasoning && String(msg.reasoning).length > 2000) {
+        msg.reasoning = '';
     }
+
+    if (msg) {
+        delete msg.isEditing_Message;
+        delete msg.editMessageContent;
+        delete msg.isReasoningOpen;
+    }
+
     return msg;
 });
-
-const dataStr = JSON.stringify({
+     const dataStr = JSON.stringify({
     characterUuid: currentCharacter.value.uuid,
     characterName: currentCharacter.value.name,
     history: safeHistory
@@ -4189,7 +4951,7 @@ const dataStr = JSON.stringify({
                             const confirmed = await confirmDialog("导入后会覆盖当前会话，是否继续？");
                             if (confirmed) {
                                 chatHistory.value = parsed.history;
-                                saveData();
+                                await saveData();
                                 showToast('会话已导入。');
                                 nextTick(() => {
                                     if (chatContainer.value) chatContainer.value.scrollTop = chatContainer.value.scrollHeight;
@@ -4512,9 +5274,8 @@ setAssistantMessageDisplayContent(msg, content);
         }
     }
 
-    saveData();
+    await saveData();
 };
-
 const onDreamImageLoad = () => {
     imagePreviewLoading.value = false;
     imagePreviewError.value = '';
@@ -4685,11 +5446,17 @@ const mergeReactive = (target, source) => {
     });
 };
 
-const loadData = () => {
+const loadData = async () => {
     appReady.value = true;
 
     try {
-        const savedChars = safeJsonParse(localStorage.getItem('miao_chars'), []);
+        await requestPersistentStorage();
+
+        const savedChars = await idbGet(
+            'miao_chars',
+            safeJsonParse(localStorage.getItem('miao_chars'), [])
+        );
+
         if (Array.isArray(savedChars)) {
             characters.value = savedChars.map(c => ({
                 uuid: c.uuid || generateUUID(),
@@ -4705,11 +5472,16 @@ const loadData = () => {
                 statusVars: c.statusVars || { affection: 50, trust: 30, dependency: 20 },
                 worldInfo: Array.isArray(c.worldInfo) ? c.worldInfo.map(normWI) : [],
                 regexScripts: Array.isArray(c.regexScripts) ? c.regexScripts.map(normRX) : [],
-                uiTemplates: Array.isArray(c.uiTemplates) ? c.uiTemplates.map(normUI) : []
+                uiTemplates: Array.isArray(c.uiTemplates) ? c.uiTemplates.map(normUI) : [],
+                memoryData: c.memoryData || createDefaultMemoryData()
             }));
         }
 
-        const savedProfiles = safeJsonParse(localStorage.getItem('miao_user_profiles'), null);
+        const savedProfiles = await idbGet(
+            'miao_user_profiles',
+            safeJsonParse(localStorage.getItem('miao_user_profiles'), null)
+        );
+
         if (Array.isArray(savedProfiles) && savedProfiles.length) {
             userProfiles.value = savedProfiles.map(p => ({
                 uuid: p.uuid || generateUUID(),
@@ -4727,7 +5499,11 @@ const loadData = () => {
                 ? savedPersonaIdx
                 : 0;
 
-        const savedSettings = safeJsonParse(localStorage.getItem('miao_settings'), null);
+        const savedSettings = await idbGet(
+            'miao_settings',
+            safeJsonParse(localStorage.getItem('miao_settings'), null)
+        );
+
         if (savedSettings) mergeReactive(settings, savedSettings);
 
         if (!settings.apiUrl) settings.apiUrl = 'https://api.openai.com/v1';
@@ -4735,7 +5511,21 @@ const loadData = () => {
         if (!settings.dialogueFontSize) settings.dialogueFontSize = '15px';
         if (!settings.maxRenderLayers) settings.maxRenderLayers = 3;
 
-        const savedImageSettings = safeJsonParse(localStorage.getItem('miao_image_settings'), null);
+        const savedMemorySettings = await idbGet(
+            'miao_memory_settings',
+            safeJsonParse(localStorage.getItem('miao_memory_settings'), null)
+        );
+
+        if (savedMemorySettings) mergeReactive(memorySettings, savedMemorySettings);
+
+        if (!memorySettings.apiUrl) memorySettings.apiUrl = 'https://api.openai.com/v1';
+        if (!memorySettings.model) memorySettings.model = 'gpt-4o-mini';
+
+        const savedImageSettings = await idbGet(
+            'miao_image_settings',
+            safeJsonParse(localStorage.getItem('miao_image_settings'), null)
+        );
+
         if (savedImageSettings) mergeReactive(imageSettings, savedImageSettings);
 
         if (!imageSettings.apiUrl) imageSettings.apiUrl = 'https://api.openai.com/v1';
@@ -4744,25 +5534,45 @@ const loadData = () => {
         if (!imageSettings.size) imageSettings.size = '竖图';
         if (!imageSettings.sampler) imageSettings.sampler = 'k_dpmpp_2m_sde';
 
-        const savedModels = safeJsonParse(localStorage.getItem('miao_models_list'), []);
+        const savedModels = await idbGet(
+            'miao_models_list',
+            safeJsonParse(localStorage.getItem('miao_models_list'), [])
+        );
+
         if (Array.isArray(savedModels)) modelsList.value = savedModels;
 
-        customChatBg.value = localStorage.getItem('miao_custom_chat_bg') || '';
+        customChatBg.value = await idbGet(
+            'miao_custom_chat_bg',
+            localStorage.getItem('miao_custom_chat_bg') || ''
+        );
+
         sidebarCollapsed.value = localStorage.getItem('miao_sidebar_collapsed') === '1';
 
         const lastCharUuid = localStorage.getItem('miao_current_character_uuid');
+
         if (lastCharUuid) {
             const restoredIndex = characters.value.findIndex(c => c.uuid === lastCharUuid);
+
             if (restoredIndex >= 0) {
                 currentCharacterIndex.value = restoredIndex;
+
                 const char = characters.value[restoredIndex];
-                const savedChat = safeJsonParse(localStorage.getItem(`miao_chat_${char.uuid}`), []);
+
+                const savedChat = await idbGet(
+                    `miao_chat_${char.uuid}`,
+                    safeJsonParse(localStorage.getItem(`miao_chat_${char.uuid}`), [])
+                );
+
                 chatHistory.value = Array.isArray(savedChat) ? savedChat : [];
                 editCharacter(restoredIndex);
             }
         }
 
-        const savedDraft = safeJsonParse(localStorage.getItem('miao_editor_draft'), null);
+        const savedDraft = await idbGet(
+            'miao_editor_draft',
+            safeJsonParse(localStorage.getItem('miao_editor_draft'), null)
+        );
+
         if (savedDraft && !savedDraft.skipped && savedDraft.data) {
             editingCharacter.id = savedDraft.id;
             editingCharacter.data = {
@@ -4771,8 +5581,38 @@ const loadData = () => {
                 statusVars: savedDraft.data.statusVars || {},
                 worldInfo: Array.isArray(savedDraft.data.worldInfo) ? savedDraft.data.worldInfo.map(normWI) : [],
                 regexScripts: Array.isArray(savedDraft.data.regexScripts) ? savedDraft.data.regexScripts.map(normRX) : [],
-                uiTemplates: Array.isArray(savedDraft.data.uiTemplates) ? savedDraft.data.uiTemplates.map(normUI) : []
+                uiTemplates: Array.isArray(savedDraft.data.uiTemplates) ? savedDraft.data.uiTemplates.map(normUI) : [],
+                memoryData: savedDraft.data.memoryData || createDefaultMemoryData()
             };
+
+            if (savedDraft.editorTab) editorTab.value = savedDraft.editorTab;
+
+        } else if (characters.value[0] && editingCharacter.id === undefined) {
+            editingCharacter.id = 0;
+            editingCharacter.data = JSON.parse(JSON.stringify(characters.value[0]));
+            if (!editingCharacter.data.memoryData) {
+                editingCharacter.data.memoryData = createDefaultMemoryData();
+            }
+        }
+
+        // 首次迁移后主动写入 IDB
+        await saveData();
+
+        const estimate = await getStorageEstimateText();
+        console.info('[miao-storage]', estimate);
+
+    } catch (e) {
+        console.error('载入 IndexedDB 数据失败：', e);
+        showToast('本地数据载入失败，已使用默认配置。', 'error');
+
+    } finally {
+        appReady.value = true;
+
+        setTimeout(() => {
+            appReady.value = true;
+        }, 300);
+    }
+};
             if (savedDraft.editorTab) editorTab.value = savedDraft.editorTab;
         } else if (characters.value[0] && editingCharacter.id === undefined) {
             editingCharacter.id = 0;
@@ -4804,14 +5644,16 @@ const hideSlowchatBootLoader = () => {
     }, 260);
 };
 
-onMounted(() => {
+onMounted(async () => {
     try {
-        loadData();
+        await loadData();
     } catch (e) {
         console.error('启动加载异常：', e);
     } finally {
         setTimeout(hideSlowchatBootLoader, 350);
     }
+
+await refreshStorageEstimate();
 
     updateMobileState();
     window.addEventListener('resize', updateMobileState);
@@ -4858,6 +5700,13 @@ onBeforeUnmount(() => {
                     characterSearchQuery,
                     filteredCharacters,
                     defaultAvatar,
+
+                    memorySettings,
+                    storageEstimateText,
+                    refreshStorageEstimate,
+                    requestStoragePersistFromUI,
+                    clearCurrentCharacterMemory,
+                    clearAllIndexedDBData,
 
                     isGenerating,
                     isReceiving,
